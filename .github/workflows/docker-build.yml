@@ -1,0 +1,67 @@
+name: Docker Image CI
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set VERSION env from tag
+        run: |
+          RAW_TAG="${GITHUB_REF_NAME}"
+          VERSION="${RAW_TAG#v}"
+          if [ -z "$VERSION" ]; then
+            echo "태그에서 버전을 추출하지 못했습니다."
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Set IMAGE_NAME env
+        run: |
+          echo "IMAGE_NAME=${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/${{ github.event.repository.name }}" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Harbor registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            NEXT_PUBLIC_VERSION=${{ env.VERSION }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:v${{ env.VERSION }}
+            ${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Webhook deploy
+        shell: bash
+        run: |
+          set +x
+          curl -sS -X POST \
+          -H "X-Token: ${{ secrets.WEBHOOK_TOKEN }}" \
+          -H "X-Target-Service: ${{ secrets.TARGET_SERVICE }}" \
+          -H "X-Target-Path: ${{ secrets.TARGET_SERVICE_PATH }}" \
+          "${{ secrets.WEBHOOK_URL }}" \
+          > /dev/null 2>&1

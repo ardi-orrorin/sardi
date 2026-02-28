@@ -39,19 +39,20 @@ function MoonIcon() {
 }
 
 export function ThemeToggleFab() {
-  const [mode, setMode] = useState<ThemeMode>("dark");
+  const [mode, setMode] = useState<ThemeMode>(() => {
+    if (typeof window === "undefined") {
+      return "dark";
+    }
+    return resolveInitialTheme();
+  });
 
   useEffect(() => {
-    const initial = resolveInitialTheme();
-    applyTheme(initial);
-    setMode(initial);
-  }, []);
+    applyTheme(mode);
+    window.localStorage.setItem(STORAGE_KEY, mode);
+  }, [mode]);
 
   const toggleTheme = () => {
-    const nextTheme: ThemeMode = mode === "dark" ? "light" : "dark";
-    applyTheme(nextTheme);
-    window.localStorage.setItem(STORAGE_KEY, nextTheme);
-    setMode(nextTheme);
+    setMode((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
   return (

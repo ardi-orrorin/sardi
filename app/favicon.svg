@@ -1,0 +1,34 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 -->
+  <rect width="32" height="32" rx="6" fill="#3B82F6"/>
+  
+  <!-- 캘린더 아이콘 -->
+  <rect x="6" y="8" width="20" height="18" rx="2" fill="white"/>
+  <rect x="6" y="8" width="20" height="5" rx="2" fill="#E5E7EB"/>
+  
+  <!-- 캘린더 구분선 -->
+  <line x1="6" y1="13" x2="26" y2="13" stroke="#3B82F6" stroke-width="0.5"/>
+  
+  <!-- 캘린더 링 -->
+  <circle cx="11" cy="10.5" r="1" fill="#3B82F6"/>
+  <circle cx="21" cy="10.5" r="1" fill="#3B82F6"/>
+  
+  <!-- 교대 근무 표시 (다른 색깔의 날짜들) -->
+  <rect x="9" y="15" width="2" height="2" rx="0.5" fill="#10B981"/>
+  <rect x="12" y="15" width="2" height="2" rx="0.5" fill="#F59E0B"/>
+  <rect x="15" y="15" width="2" height="2" rx="0.5" fill="#EF4444"/>
+  <rect x="18" y="15" width="2" height="2" rx="0.5" fill="#10B981"/>
+  <rect x="21" y="15" width="2" height="2" rx="0.5" fill="#F59E0B"/>
+  
+  <rect x="9" y="18" width="2" height="2" rx="0.5" fill="#F59E0B"/>
+  <rect x="12" y="18" width="2" height="2" rx="0.5" fill="#EF4444"/>
+  <rect x="15" y="18" width="2" height="2" rx="0.5" fill="#10B981"/>
+  <rect x="18" y="18" width="2" height="2" rx="0.5" fill="#F59E0B"/>
+  <rect x="21" y="18" width="2" height="2" rx="0.5" fill="#EF4444"/>
+  
+  <rect x="9" y="21" width="2" height="2" rx="0.5" fill="#EF4444"/>
+  <rect x="12" y="21" width="2" height="2" rx="0.5" fill="#10B981"/>
+  <rect x="15" y="21" width="2" height="2" rx="0.5" fill="#F59E0B"/>
+  <rect x="18" y="21" width="2" height="2" rx="0.5" fill="#EF4444"/>
+  <rect x="21" y="21" width="2" height="2" rx="0.5" fill="#10B981"/>
+</svg>

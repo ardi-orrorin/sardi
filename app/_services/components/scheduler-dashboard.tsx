@@ -201,7 +201,11 @@ const toScheduleDetailForm = (item: ScheduleItem): ScheduleDetailForm => {
 };
 
 const addByRepeatUnit = (value: dayjs.Dayjs, repeatUnit: RepeatUnitValue, amount: number) =>
-  repeatUnit === "week" ? value.add(amount, "week") : repeatUnit === "month" ? value.add(amount, "month") : value.add(amount, "year");
+  repeatUnit === "week"
+    ? value.add(amount, "week")
+    : repeatUnit === "month"
+      ? value.add(amount, "month")
+      : value.add(amount, "year");
 
 const repeatUnitToKorean = (repeatUnit: string) => {
   if (repeatUnit === "week") {
@@ -359,8 +363,7 @@ function DropdownSelect({ options, value, onChange, tone, placeholder }: Dropdow
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm ${borderClass}`}
-      >
+        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm ${borderClass}`}>
         <span className="flex min-w-0 items-center gap-2">
           {selected ? (
             <span
@@ -387,8 +390,7 @@ function DropdownSelect({ options, value, onChange, tone, placeholder }: Dropdow
                 onClick={() => handleSelect(item.value)}
                 className={`flex w-full items-center justify-between rounded-md px-2 py-2 text-left text-sm hover:bg-black/20 ${
                   active ? "bg-black/30" : ""
-                } ${textClass}`}
-              >
+                } ${textClass}`}>
                 <span className="flex min-w-0 items-center gap-2">
                   <span
                     className="inline-block h-3 w-3 shrink-0 rounded-full"
@@ -508,6 +510,39 @@ function ChevronUpIcon({ className = "h-3.5 w-3.5" }: IconProps) {
 
 export default function SchedulerDashboard() {
   const router = useRouter();
+  const calendarRef = useRef<FullCalendar>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // 최소 스와이프 거리 (px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && calendarRef.current) {
+      calendarRef.current.getApi().next();
+    }
+    if (isRightSwipe && calendarRef.current) {
+      calendarRef.current.getApi().prev();
+    }
+
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
 
   const [statusMessage, setStatusMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -693,7 +728,9 @@ export default function SchedulerDashboard() {
   }, []);
 
   const loadLabels = useCallback(async () => {
-    const payload = await FetchBuilder.get().url("/api/sardi/schedule-labels").execute<ScheduleLabel[] | { error?: string }>();
+    const payload = await FetchBuilder.get()
+      .url("/api/sardi/schedule-labels")
+      .execute<ScheduleLabel[] | { error?: string }>();
     if (!Array.isArray(payload)) {
       throw new Error(payload.error ?? "라벨 조회 실패");
     }
@@ -728,9 +765,7 @@ export default function SchedulerDashboard() {
   }, []);
 
   const loadSchedules = useCallback(async () => {
-    const payload = await FetchBuilder.get()
-      .url(listScheduleApi)
-      .execute<ScheduleListResponse | { error?: string }>();
+    const payload = await FetchBuilder.get().url(listScheduleApi).execute<ScheduleListResponse | { error?: string }>();
 
     if (!("items" in payload)) {
       throw new Error(payload.error ?? "일정 조회 실패");
@@ -855,11 +890,7 @@ export default function SchedulerDashboard() {
   };
 
   const openConfirmDialog = useCallback(
-    (
-      dialog: Omit<ConfirmDialogState, "open">,
-      onConfirm: () => Promise<void> | void,
-      onCancel?: () => void
-    ) => {
+    (dialog: Omit<ConfirmDialogState, "open">, onConfirm: () => Promise<void> | void, onCancel?: () => void) => {
       confirmActionRef.current = onConfirm;
       cancelActionRef.current = onCancel ?? null;
       setConfirmDialog({
@@ -1052,7 +1083,9 @@ export default function SchedulerDashboard() {
       }));
       await loadSchedules();
       setStatusMessage(
-        manualForm.repeat_enabled ? `일반 반복 일정 ${repeatCount}건이 등록되었습니다.` : "일반 스케줄이 등록되었습니다."
+        manualForm.repeat_enabled
+          ? `일반 반복 일정 ${repeatCount}건이 등록되었습니다.`
+          : "일반 스케줄이 등록되었습니다."
       );
       setIsManualModalOpen(false);
     } catch (error) {
@@ -1061,48 +1094,27 @@ export default function SchedulerDashboard() {
     }
   };
 
-  const handleCalendarSelect = (arg: { start: Date; end: Date; allDay: boolean }) => {
-    const start = dayjs(arg.start).tz(SEOUL_TZ);
-    const rawEnd = dayjs(arg.end).tz(SEOUL_TZ);
-    const end = arg.allDay ? rawEnd.subtract(1, "day") : rawEnd;
+  const handleOpenManualModal = ({ start, end, allDay }: { start: Date; end: Date; allDay: boolean }) => {
+    const startDate = dayjs(start).tz(SEOUL_TZ);
+    const rawEnd = dayjs(end).tz(SEOUL_TZ);
+    const finalEnd = allDay ? rawEnd.subtract(1, "day") : rawEnd;
 
-    if (!rawEnd.isAfter(start)) {
+    if (!rawEnd.isAfter(startDate)) {
       setStatusMessage("선택 범위가 올바르지 않습니다.");
       return;
     }
 
     setManualForm((prev) => ({
       ...prev,
-      start_date: start.format("YYYY-MM-DD"),
-      end_date: end.format("YYYY-MM-DD"),
-      all_day: arg.allDay,
-      start_time: start.format("HH:mm"),
-      end_time: end.format("HH:mm")
+      start_date: startDate.format("YYYY-MM-DD"),
+      end_date: finalEnd.format("YYYY-MM-DD"),
+      all_day: allDay,
+      start_time: startDate.format("HH:mm"),
+      end_time: finalEnd.format("HH:mm")
     }));
     setPatternForm((prev) => ({
       ...prev,
-      start_date: start.format("YYYY-MM-DD")
-    }));
-    setRegisterMode("manual");
-    setIsManualModalOpen(true);
-    setStatusMessage("");
-  };
-
-  const handleCalendarDateClick = (arg: { date: Date; allDay: boolean }) => {
-    const start = dayjs(arg.date).tz(SEOUL_TZ);
-    const defaultEnd = arg.allDay ? start : start.add(1, "hour");
-
-    setManualForm((prev) => ({
-      ...prev,
-      start_date: start.format("YYYY-MM-DD"),
-      end_date: defaultEnd.format("YYYY-MM-DD"),
-      all_day: arg.allDay,
-      start_time: start.format("HH:mm"),
-      end_time: defaultEnd.format("HH:mm")
-    }));
-    setPatternForm((prev) => ({
-      ...prev,
-      start_date: start.format("YYYY-MM-DD")
+      start_date: startDate.format("YYYY-MM-DD")
     }));
     setRegisterMode("manual");
     setIsManualModalOpen(true);
@@ -1171,13 +1183,7 @@ export default function SchedulerDashboard() {
   };
 
   const updateScheduleRange = useCallback(
-    async (
-      scheduleId: string,
-      start: Date,
-      end: Date,
-      allDay: boolean,
-      options?: { detachedFromGroup?: boolean }
-    ) => {
+    async (scheduleId: string, start: Date, end: Date, allDay: boolean, options?: { detachedFromGroup?: boolean }) => {
       const payload = await FetchBuilder.patch()
         .url(`/api/sardi/schedules/${encodeURIComponent(scheduleId)}`)
         .body({
@@ -1212,7 +1218,11 @@ export default function SchedulerDashboard() {
       return;
     }
 
-    const end = event.end ?? dayjs(event.start).add(event.allDay ? 1 : 1, event.allDay ? "day" : "hour").toDate();
+    const end =
+      event.end ??
+      dayjs(event.start)
+        .add(event.allDay ? 1 : 1, event.allDay ? "day" : "hour")
+        .toDate();
     if (!dayjs(end).isAfter(dayjs(event.start))) {
       arg.revert();
       setStatusMessage("이동 후 종료 시간이 시작 시간보다 늦어야 합니다.");
@@ -1280,7 +1290,9 @@ export default function SchedulerDashboard() {
 
     const runUpdate = async () => {
       try {
-        await updateScheduleRange(event.id, event.start as Date, event.end as Date, event.allDay, { detachedFromGroup });
+        await updateScheduleRange(event.id, event.start as Date, event.end as Date, event.allDay, {
+          detachedFromGroup
+        });
       } catch (error) {
         arg.revert();
         const message = error instanceof Error ? error.message : "일정 리사이즈 실패";
@@ -1325,7 +1337,9 @@ export default function SchedulerDashboard() {
         throw new Error(payload.error ?? "반복 일정 목록 조회 실패");
       }
 
-      const sorted = [...payload.items].sort((left, right) => dayjs(left.start_ts).valueOf() - dayjs(right.start_ts).valueOf());
+      const sorted = [...payload.items].sort(
+        (left, right) => dayjs(left.start_ts).valueOf() - dayjs(right.start_ts).valueOf()
+      );
       setRepeatGroupItems(sorted);
     } catch (error) {
       const message = error instanceof Error ? error.message : "반복 일정 목록 조회 실패";
@@ -1436,7 +1450,8 @@ export default function SchedulerDashboard() {
     }
 
     const detachedFromGroup =
-      Boolean(selectedSchedule.group_id) && hasScheduleRangeChanged(selectedSchedule, startTs, endTs, detailForm.all_day);
+      Boolean(selectedSchedule.group_id) &&
+      hasScheduleRangeChanged(selectedSchedule, startTs, endTs, detailForm.all_day);
 
     const runSave = async () => {
       setStatusMessage("");
@@ -1455,7 +1470,8 @@ export default function SchedulerDashboard() {
           .execute<ScheduleItem | { error?: string; id?: string }>();
 
         if (!("id" in payload) || !payload.id) {
-          const errorMessage = "error" in payload && typeof payload.error === "string" ? payload.error : "일정 수정 실패";
+          const errorMessage =
+            "error" in payload && typeof payload.error === "string" ? payload.error : "일정 수정 실패";
           throw new Error(errorMessage);
         }
 
@@ -1535,14 +1551,12 @@ export default function SchedulerDashboard() {
         <div className="grid w-full grid-cols-3 gap-2 md:flex md:w-auto md:flex-wrap">
           <Link
             href="/settings/shifts"
-            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm"
-          >
+            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm">
             근무 설정
           </Link>
           <Link
             href="/settings/account"
-            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm"
-          >
+            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm">
             계정 설정
           </Link>
           <button
@@ -1550,8 +1564,7 @@ export default function SchedulerDashboard() {
             onClick={handleLogout}
             className="inline-flex items-center justify-center rounded-lg border border-rose-300/40 px-2 py-2 text-rose-200 md:px-3 md:py-1"
             aria-label="로그아웃"
-            title="로그아웃"
-          >
+            title="로그아웃">
             <LogoutIcon />
             <span className="sr-only">로그아웃</span>
           </button>
@@ -1569,90 +1582,116 @@ export default function SchedulerDashboard() {
           isFilterColorOnly
             ? "md:grid-cols-[minmax(0,1fr)_84px] lg:grid-cols-[minmax(0,1fr)_90px] xl:grid-cols-[minmax(0,1fr)_96px]"
             : "md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]"
-        }`}
-      >
+        }`}>
         <div className="flex min-h-[70dvh] flex-col md:h-full md:min-h-0">
-          <div className="min-h-[62dvh] flex-1 md:min-h-0">
-          <FullCalendar
-            plugins={[luxonPlugin, multiMonthPlugin, dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            timeZone={SEOUL_TZ}
-            locale="ko"
-            height="100%"
-            selectable
-            selectMirror
-            editable
-            eventStartEditable
-            eventDurationEditable
-            longPressDelay={180}
-            selectLongPressDelay={180}
-            eventLongPressDelay={180}
-            buttonText={{
-              today: "오늘",
-              multiMonthYear: "년",
-              month: "월",
-              week: "주",
-              day: "일"
-            }}
-            headerToolbar={{
-              left: "prev,next today",
-              center: "title",
-              right: "multiMonthYear,dayGridMonth,timeGridWeek,timeGridDay"
-            }}
-            events={filteredEvents}
-            datesSet={(arg) => {
-              setRange({ start: arg.startStr, end: arg.endStr });
-            }}
-            select={(arg) => {
-              void handleCalendarSelect({
-                start: arg.start,
-                end: arg.end,
-                allDay: arg.allDay
-              });
-            }}
-            dateClick={(arg) => {
-              handleCalendarDateClick({
-                date: arg.date,
-                allDay: arg.allDay
-              });
-            }}
-            eventDrop={(arg) => {
-              void handleEventDrop({
-                event: {
-                  id: arg.event.id,
-                  start: arg.event.start,
-                  end: arg.event.end,
-                  allDay: arg.event.allDay
-                },
-                revert: arg.revert
-              });
-            }}
-            eventResize={(arg) => {
-              void handleEventResize({
-                event: {
-                  id: arg.event.id,
-                  start: arg.event.start,
-                  end: arg.event.end,
-                  allDay: arg.event.allDay
-                },
-                revert: arg.revert
-              });
-            }}
-            eventClick={(arg) => {
-              handleOpenScheduleDetail(arg.event.id);
-            }}
-            dayCellClassNames={(arg) => getHolidayClasses(arg.date)}
-            dayHeaderClassNames={(arg) => getHolidayClasses(arg.date)}
-            dayMaxEvents={3}
-            views={{
-              multiMonthYear: {
-                multiMonthMinWidth: 220
-              }
-            }}
-          />
+          <div
+            className="min-h-[62dvh] flex-1 md:min-h-0"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}>
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[luxonPlugin, multiMonthPlugin, dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              timeZone={SEOUL_TZ}
+              locale="ko"
+              height="100%"
+              selectable
+              selectMirror
+              editable
+              eventStartEditable
+              eventDurationEditable
+              longPressDelay={300}
+              selectLongPressDelay={300}
+              eventLongPressDelay={300}
+              eventMinHeight={20}
+              events={filteredEvents}
+              eventClick={(arg) => {
+                // 모바일에서는 드래그 중 클릭 이벤트 방지
+                if (arg.jsEvent.type === "touchend" && window.innerWidth < 768) {
+                  const rawTouchStartTime = arg.el.dataset.touchStartTime;
+                  const touchStartTime = rawTouchStartTime ? Number(rawTouchStartTime) : NaN;
+                  const touchDuration = Number.isFinite(touchStartTime) ? Date.now() - touchStartTime : 0;
+                  if (touchDuration > 300) {
+                    return; // 길게 누른 경우에는 클릭 이벤트 무시
+                  }
+                }
+                handleOpenScheduleDetail(arg.event.id);
+              }}
+              eventDidMount={(info) => {
+                // 모바일 터치 이벤트 시간 기록
+                if (window.innerWidth < 768) {
+                  const handleTouchStart = () => {
+                    info.el.dataset.touchStartTime = String(Date.now());
+                  };
+
+                  info.el.addEventListener("touchstart", handleTouchStart, { passive: true });
+                }
+              }}
+              handleWindowResize={true}
+              windowResizeDelay={100}
+              buttonText={{
+                today: "오늘",
+                multiMonthYear: "년",
+                month: "월",
+                week: "주",
+                day: "일"
+              }}
+              headerToolbar={{
+                left: "prev,next today",
+                center: "title",
+                right: "multiMonthYear,dayGridMonth,timeGridWeek,timeGridDay"
+              }}
+              datesSet={(arg) => {
+                const start = arg.view.currentStart;
+                const end = arg.view.currentEnd;
+                setRange({
+                  start: dayjs(start).toISOString(),
+                  end: dayjs(end).toISOString()
+                });
+              }}
+              select={(arg) => {
+                void handleOpenManualModal({
+                  start: arg.start,
+                  end: arg.end,
+                  allDay: arg.allDay
+                });
+              }}
+              eventDrop={(arg) => {
+                void handleEventDrop({
+                  event: {
+                    id: arg.event.id,
+                    start: arg.event.start,
+                    end: arg.event.end,
+                    allDay: arg.event.allDay
+                  },
+                  revert: arg.revert
+                });
+              }}
+              eventResize={(arg) => {
+                void handleEventResize({
+                  event: {
+                    id: arg.event.id,
+                    start: arg.event.start,
+                    end: arg.event.end,
+                    allDay: arg.event.allDay
+                  },
+                  revert: arg.revert
+                });
+              }}
+              dayCellClassNames={(arg) => getHolidayClasses(arg.date)}
+              dayHeaderClassNames={(arg) => getHolidayClasses(arg.date)}
+              dayMaxEvents={3}
+              views={{
+                multiMonthYear: {
+                  multiMonthMinWidth: 220
+                }
+              }}
+            />
           </div>
           <p className="mt-2 text-[11px] text-cyan-100/70">
-            날짜 클릭 또는 터치/드래그 범위 선택으로 일반 스케줄 모달이 열리고, 기존 일정은 드래그/리사이즈로 시간 수정할 수 있습니다.
+            날짜 클릭 또는 터치/드래그 범위 선택으로 일반 스케줄 모달이 열리고, 기존 일정은 드래그/리사이즈로 시간
+            수정할 수 있습니다.
           </p>
         </div>
 
@@ -1664,8 +1703,7 @@ export default function SchedulerDashboard() {
               onClick={() => setIsFilterColorOnly((prev) => !prev)}
               className="hidden h-8 w-8 items-center justify-center rounded-md border border-cyan-300/35 text-cyan-100 md:inline-flex"
               aria-label={isFilterColorOnly ? "기본 보기로 전환" : "색상만 보기로 전환"}
-              title={isFilterColorOnly ? "기본 보기" : "색상만 보기"}
-            >
+              title={isFilterColorOnly ? "기본 보기" : "색상만 보기"}>
               {isFilterColorOnly ? <ListIcon /> : <PaletteIcon />}
             </button>
           </div>
@@ -1676,15 +1714,13 @@ export default function SchedulerDashboard() {
                 <button
                   type="button"
                   onClick={() => setSelectedLabelIds(labels.map((label) => label.id))}
-                  className="rounded-md border border-cyan-300/35 px-2 py-1 text-[11px] text-cyan-100"
-                >
+                  className="rounded-md border border-cyan-300/35 px-2 py-1 text-[11px] text-cyan-100">
                   전체
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedLabelIds([])}
-                  className="rounded-md border border-cyan-300/35 px-2 py-1 text-[11px] text-cyan-100"
-                >
+                  className="rounded-md border border-cyan-300/35 px-2 py-1 text-[11px] text-cyan-100">
                   해제
                 </button>
               </div>
@@ -1702,8 +1738,7 @@ export default function SchedulerDashboard() {
                         onClick={() => handleToggleLabel(label.id, !checked)}
                         className={`flex h-8 w-full items-center rounded-md border px-1 ${
                           checked ? "border-cyan-300/65" : "border-teal-200/20"
-                        }`}
-                      >
+                        }`}>
                         <span
                           className={`inline-block h-4 w-full rounded-sm ${checked ? "" : "opacity-50"}`}
                           style={{ backgroundColor: normalizeHexColor(label.color) || DEFAULT_LABEL_COLOR }}
@@ -1723,22 +1758,19 @@ export default function SchedulerDashboard() {
                   onClick={openCreateLabelModal}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-teal-300/40 text-teal-100"
                   aria-label="라벨 등록"
-                  title="라벨 등록"
-                >
+                  title="라벨 등록">
                   <PlusIcon />
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedLabelIds(labels.map((label) => label.id))}
-                  className="rounded-md border border-cyan-300/35 px-2 py-1 text-[11px] text-cyan-100"
-                >
+                  className="rounded-md border border-cyan-300/35 px-2 py-1 text-[11px] text-cyan-100">
                   전체
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedLabelIds([])}
-                  className="rounded-md border border-cyan-300/35 px-2 py-1 text-[11px] text-cyan-100"
-                >
+                  className="rounded-md border border-cyan-300/35 px-2 py-1 text-[11px] text-cyan-100">
                   해제
                 </button>
               </div>
@@ -1750,14 +1782,19 @@ export default function SchedulerDashboard() {
                   labels.map((label) => {
                     const checked = selectedLabelIds.includes(label.id);
                     return (
-                      <div key={label.id} className="flex items-center justify-between gap-2 rounded-lg border border-teal-200/10 px-2 py-2">
+                      <div
+                        key={label.id}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-teal-200/10 px-2 py-2">
                         <label className="flex min-w-0 flex-1 items-center gap-2 text-xs text-cyan-100">
                           <input
                             type="checkbox"
                             checked={checked}
                             onChange={(event) => handleToggleLabel(label.id, event.target.checked)}
                           />
-                          <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: label.color }} />
+                          <span
+                            className="inline-block h-3 w-3 shrink-0 rounded-full"
+                            style={{ backgroundColor: label.color }}
+                          />
                           <span className="min-w-0">
                             <span className="block truncate text-teal-50">{label.name}</span>
                             <span className="block text-[11px] text-teal-100/65">{label.color}</span>
@@ -1768,8 +1805,7 @@ export default function SchedulerDashboard() {
                           onClick={() => openEditLabelModal(label)}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-cyan-300/35 text-cyan-100"
                           aria-label={`${label.name} 라벨 수정`}
-                          title="수정"
-                        >
+                          title="수정">
                           <EditIcon className="h-4 w-4" />
                         </button>
                       </div>
@@ -1794,8 +1830,7 @@ export default function SchedulerDashboard() {
                 onClick={() => setIsManualModalOpen(false)}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-cyan-200/30 text-cyan-100"
                 aria-label="등록 모달 닫기"
-                title="닫기"
-              >
+                title="닫기">
                 <CloseIcon />
               </button>
             </div>
@@ -1808,8 +1843,7 @@ export default function SchedulerDashboard() {
                   registerMode === "manual"
                     ? "bg-teal-300 text-teal-950"
                     : "border border-teal-100/20 bg-teal-950/30 text-teal-100/80"
-                }`}
-              >
+                }`}>
                 일반 스케줄
               </button>
               <button
@@ -1819,8 +1853,7 @@ export default function SchedulerDashboard() {
                   registerMode === "pattern"
                     ? "bg-cyan-300 text-cyan-950"
                     : "border border-teal-100/20 bg-teal-950/30 text-teal-100/80"
-                }`}
-              >
+                }`}>
                 패턴 등록
               </button>
             </div>
@@ -1949,11 +1982,12 @@ export default function SchedulerDashboard() {
                   <button
                     type="button"
                     onClick={() => setIsManualModalOpen(false)}
-                    className="rounded-lg border border-cyan-300/35 px-3 py-2 text-sm text-cyan-100"
-                  >
+                    className="rounded-lg border border-cyan-300/35 px-3 py-2 text-sm text-cyan-100">
                     취소
                   </button>
-                  <button type="submit" className="inline-flex items-center justify-center gap-1 rounded-lg bg-teal-300 px-3 py-2 text-sm font-bold text-teal-950">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center gap-1 rounded-lg bg-teal-300 px-3 py-2 text-sm font-bold text-teal-950">
                     <PlusIcon />
                     일반 일정 추가
                   </button>
@@ -2006,11 +2040,12 @@ export default function SchedulerDashboard() {
                   <button
                     type="button"
                     onClick={() => setIsManualModalOpen(false)}
-                    className="rounded-lg border border-cyan-300/35 px-3 py-2 text-sm text-cyan-100"
-                  >
+                    className="rounded-lg border border-cyan-300/35 px-3 py-2 text-sm text-cyan-100">
                     취소
                   </button>
-                  <button type="submit" className="inline-flex items-center justify-center gap-1 rounded-lg bg-cyan-300 px-3 py-2 text-sm font-bold text-cyan-950">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center gap-1 rounded-lg bg-cyan-300 px-3 py-2 text-sm font-bold text-cyan-950">
                     <PlusIcon />
                     패턴 일정 등록
                   </button>
@@ -2022,11 +2057,12 @@ export default function SchedulerDashboard() {
       ) : null}
 
       {isLabelModalOpen ? (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-3" onClick={closeLabelModal}>
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-3"
+          onClick={closeLabelModal}>
           <div
             className="w-full max-w-md rounded-2xl border border-teal-200/30 bg-[#031718] p-4"
-            onClick={(event) => event.stopPropagation()}
-          >
+            onClick={(event) => event.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-teal-50">{isLabelEditMode ? "라벨 수정" : "라벨 등록"}</h2>
               <button
@@ -2034,8 +2070,7 @@ export default function SchedulerDashboard() {
                 onClick={closeLabelModal}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-cyan-200/30 text-cyan-100"
                 aria-label="라벨 모달 닫기"
-                title="닫기"
-              >
+                title="닫기">
                 <CloseIcon />
               </button>
             </div>
@@ -2067,8 +2102,7 @@ export default function SchedulerDashboard() {
                 <button
                   type="button"
                   onClick={handleDeleteLabelFromModal}
-                  className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-rose-300/40 px-3 py-2 text-sm text-rose-200"
-                >
+                  className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-rose-300/40 px-3 py-2 text-sm text-rose-200">
                   <TrashIcon />
                   라벨 삭제
                 </button>
@@ -2078,11 +2112,12 @@ export default function SchedulerDashboard() {
                 <button
                   type="button"
                   onClick={closeLabelModal}
-                  className="rounded-lg border border-cyan-300/35 px-3 py-2 text-sm text-cyan-100"
-                >
+                  className="rounded-lg border border-cyan-300/35 px-3 py-2 text-sm text-cyan-100">
                   취소
                 </button>
-                <button type="submit" className="inline-flex items-center justify-center gap-1 rounded-lg bg-teal-300 px-3 py-2 text-sm font-semibold text-teal-950">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-teal-300 px-3 py-2 text-sm font-semibold text-teal-950">
                   <CheckIcon />
                   {isLabelEditMode ? "수정 저장" : "라벨 등록"}
                 </button>
@@ -2093,11 +2128,12 @@ export default function SchedulerDashboard() {
       ) : null}
 
       {selectedSchedule ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3" onClick={closeScheduleDetail}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3"
+          onClick={closeScheduleDetail}>
           <div
             className="w-full max-w-md rounded-2xl border border-cyan-200/30 bg-[#031718] p-4"
-            onClick={(event) => event.stopPropagation()}
-          >
+            onClick={(event) => event.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-cyan-50">일정 상세</h2>
               <div className="flex items-center gap-2">
@@ -2105,8 +2141,7 @@ export default function SchedulerDashboard() {
                   <button
                     type="button"
                     onClick={cancelScheduleDetailEdit}
-                    className="rounded-md border border-cyan-200/30 px-2 py-1 text-xs text-cyan-100"
-                  >
+                    className="rounded-md border border-cyan-200/30 px-2 py-1 text-xs text-cyan-100">
                     편집 취소
                   </button>
                 ) : (
@@ -2115,8 +2150,7 @@ export default function SchedulerDashboard() {
                     onClick={() => setIsDetailEditMode(true)}
                     className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-teal-300/45 text-teal-100"
                     aria-label="일정 수정"
-                    title="수정"
-                  >
+                    title="수정">
                     <EditIcon className="h-4 w-4" />
                   </button>
                 )}
@@ -2125,8 +2159,7 @@ export default function SchedulerDashboard() {
                   onClick={requestDeleteSchedule}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-rose-300/45 text-rose-200"
                   aria-label="일정 삭제"
-                  title="삭제"
-                >
+                  title="삭제">
                   <TrashIcon className="h-4 w-4" />
                 </button>
                 <button
@@ -2134,8 +2167,7 @@ export default function SchedulerDashboard() {
                   onClick={closeScheduleDetail}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-cyan-200/30 text-cyan-100"
                   aria-label="일정 상세 닫기"
-                  title="닫기"
-                >
+                  title="닫기">
                   <CloseIcon />
                 </button>
               </div>
@@ -2235,8 +2267,7 @@ export default function SchedulerDashboard() {
                           onClick={() => setRepeatGroupExpanded((prev) => !prev)}
                           className="inline-flex items-center gap-1 rounded border border-cyan-300/35 px-2 py-0.5 text-[11px] text-cyan-100"
                           aria-label={repeatGroupExpanded ? "반복 일정 목록 접기" : "반복 일정 목록 더보기"}
-                          title={repeatGroupExpanded ? "접기" : "더보기"}
-                        >
+                          title={repeatGroupExpanded ? "접기" : "더보기"}>
                           {repeatGroupExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
                           {!repeatGroupExpanded ? <span>+{hiddenRepeatGroupCount}</span> : null}
                         </button>
@@ -2261,9 +2292,10 @@ export default function SchedulerDashboard() {
                               onClick={() => openScheduleDetailItem(groupItem, { collapseRepeatList: false })}
                               className={`w-full rounded-lg border px-2 py-1.5 text-left ${
                                 active ? "border-teal-300/55 bg-teal-900/25" : "border-cyan-100/10 bg-black/15"
-                              }`}
-                            >
-                              <p className="truncate text-xs text-cyan-50">{groupItem.title?.trim() || groupItem.schedule_type_name}</p>
+                              }`}>
+                              <p className="truncate text-xs text-cyan-50">
+                                {groupItem.title?.trim() || groupItem.schedule_type_name}
+                              </p>
                               <p className="text-[11px] text-cyan-100/70">{timeText}</p>
                             </button>
                           );
@@ -2285,15 +2317,13 @@ export default function SchedulerDashboard() {
                     type="button"
                     onClick={cancelScheduleDetailEdit}
                     className="rounded-lg border border-cyan-300/35 px-3 py-2 text-sm text-cyan-100"
-                    disabled={isDetailSaving}
-                  >
+                    disabled={isDetailSaving}>
                     취소
                   </button>
                   <button
                     type="submit"
                     disabled={isDetailSaving}
-                    className="inline-flex items-center justify-center gap-1 rounded-lg bg-cyan-300 px-3 py-2 text-sm font-bold text-cyan-950 disabled:opacity-60"
-                  >
+                    className="inline-flex items-center justify-center gap-1 rounded-lg bg-cyan-300 px-3 py-2 text-sm font-bold text-cyan-950 disabled:opacity-60">
                     {isDetailSaving ? null : <CheckIcon />}
                     {isDetailSaving ? "저장 중..." : "수정 저장"}
                   </button>
@@ -2304,7 +2334,9 @@ export default function SchedulerDashboard() {
                 <div className="space-y-2 text-sm">
                   <div className="rounded-lg border border-cyan-100/15 bg-cyan-950/20 px-3 py-2">
                     <p className="text-[11px] text-cyan-100/60">제목</p>
-                    <p className="text-cyan-50">{selectedSchedule.title?.trim() || selectedSchedule.schedule_type_name}</p>
+                    <p className="text-cyan-50">
+                      {selectedSchedule.title?.trim() || selectedSchedule.schedule_type_name}
+                    </p>
                   </div>
 
                   <div className="rounded-lg border border-cyan-100/15 bg-cyan-950/20 px-3 py-2">
@@ -2319,7 +2351,9 @@ export default function SchedulerDashboard() {
                             }
                             return `${start.format("YYYY-MM-DD")} ~ ${endInclusive.format("YYYY-MM-DD")} (종일)`;
                           })()
-                        : `${dayjs(selectedSchedule.start_ts).tz(SEOUL_TZ).format("YYYY-MM-DD HH:mm")} ~ ${dayjs(selectedSchedule.end_ts)
+                        : `${dayjs(selectedSchedule.start_ts).tz(SEOUL_TZ).format("YYYY-MM-DD HH:mm")} ~ ${dayjs(
+                            selectedSchedule.end_ts
+                          )
                             .tz(SEOUL_TZ)
                             .format("YYYY-MM-DD HH:mm")}`}
                     </p>
@@ -2330,7 +2364,9 @@ export default function SchedulerDashboard() {
                     <p className="flex items-center gap-2 text-cyan-50">
                       <span
                         className="inline-block h-3 w-3 rounded-full"
-                        style={{ backgroundColor: normalizeHexColor(selectedSchedule.schedule_label_color) || "#0EA5E9" }}
+                        style={{
+                          backgroundColor: normalizeHexColor(selectedSchedule.schedule_label_color) || "#0EA5E9"
+                        }}
                       />
                       <span>{selectedSchedule.schedule_label_name}</span>
                       <span className="text-xs text-cyan-100/60">{selectedSchedule.schedule_label_color}</span>
@@ -2352,8 +2388,7 @@ export default function SchedulerDashboard() {
                             onClick={() => setRepeatGroupExpanded((prev) => !prev)}
                             className="inline-flex items-center gap-1 rounded border border-cyan-300/35 px-2 py-0.5 text-[11px] text-cyan-100"
                             aria-label={repeatGroupExpanded ? "반복 일정 목록 접기" : "반복 일정 목록 더보기"}
-                            title={repeatGroupExpanded ? "접기" : "더보기"}
-                          >
+                            title={repeatGroupExpanded ? "접기" : "더보기"}>
                             {repeatGroupExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
                             {!repeatGroupExpanded ? <span>+{hiddenRepeatGroupCount}</span> : null}
                           </button>
@@ -2378,9 +2413,10 @@ export default function SchedulerDashboard() {
                                 onClick={() => openScheduleDetailItem(groupItem, { collapseRepeatList: false })}
                                 className={`w-full rounded-lg border px-2 py-1.5 text-left ${
                                   active ? "border-teal-300/55 bg-teal-900/25" : "border-cyan-100/10 bg-black/15"
-                                }`}
-                              >
-                                <p className="truncate text-xs text-cyan-50">{groupItem.title?.trim() || groupItem.schedule_type_name}</p>
+                                }`}>
+                                <p className="truncate text-xs text-cyan-50">
+                                  {groupItem.title?.trim() || groupItem.schedule_type_name}
+                                </p>
                                 <p className="text-[11px] text-cyan-100/70">{timeText}</p>
                               </button>
                             );
@@ -2402,11 +2438,12 @@ export default function SchedulerDashboard() {
       ) : null}
 
       {confirmDialog.open ? (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" onClick={() => closeConfirmDialog(true)}>
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4"
+          onClick={() => closeConfirmDialog(true)}>
           <div
             className="w-full max-w-sm rounded-2xl border border-cyan-200/30 bg-[#031718] p-4"
-            onClick={(event) => event.stopPropagation()}
-          >
+            onClick={(event) => event.stopPropagation()}>
             <h3 className="text-sm font-semibold text-cyan-50">{confirmDialog.title}</h3>
             <p className="mt-2 text-xs leading-relaxed text-cyan-100/85">{confirmDialog.message}</p>
             <div className="mt-4 grid grid-cols-2 gap-2">
@@ -2414,8 +2451,7 @@ export default function SchedulerDashboard() {
                 type="button"
                 onClick={() => closeConfirmDialog(true)}
                 className="rounded-lg border border-cyan-300/35 px-3 py-2 text-sm text-cyan-100"
-                disabled={confirmDialogBusy}
-              >
+                disabled={confirmDialogBusy}>
                 취소
               </button>
               <button
@@ -2424,8 +2460,7 @@ export default function SchedulerDashboard() {
                 className={`rounded-lg px-3 py-2 text-sm font-semibold ${
                   confirmDialog.tone === "danger" ? "bg-rose-300 text-rose-950" : "bg-cyan-300 text-cyan-950"
                 } disabled:opacity-60`}
-                disabled={confirmDialogBusy}
-              >
+                disabled={confirmDialogBusy}>
                 {confirmDialogBusy ? "처리 중..." : confirmDialog.confirmText}
               </button>
             </div>

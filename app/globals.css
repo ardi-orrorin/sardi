@@ -48,6 +48,30 @@ textarea {
   font: inherit;
 }
 
+/* FullCalendar 모바일 터치 개선 */
+.fc {
+  touch-action: manipulation;
+}
+
+.fc-event {
+  touch-action: none;
+}
+
+.fc-daygrid-day {
+  touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+  .fc-event {
+    min-height: 24px;
+    font-size: 12px;
+  }
+
+  .fc-daygrid-event-dot {
+    display: none;
+  }
+}
+
 .app-shell {
   min-height: 100dvh;
   padding: 1rem 0.75rem;
