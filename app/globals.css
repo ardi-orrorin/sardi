@@ -1,0 +1,465 @@
+@import "tailwindcss";
+
+:root {
+  --bg-main: #031314;
+  --text-main: #def6f4;
+  --app-gradient: radial-gradient(circle at top, #0f766e 0%, #052728 48%, #031314 100%);
+  --surface-strong: rgba(1, 15, 16, 0.46);
+  --surface-soft: rgba(4, 32, 34, 0.68);
+  --border-main: rgba(131, 235, 224, 0.22);
+}
+
+html.theme-light {
+  --bg-main: #eff7fb;
+  --text-main: #142838;
+  --app-gradient: radial-gradient(circle at top, #ffffff 0%, #edf6f9 45%, #e2edf4 100%);
+  --surface-strong: rgba(255, 255, 255, 0.88);
+  --surface-soft: rgba(255, 255, 255, 0.76);
+  --border-main: rgba(13, 110, 123, 0.22);
+}
+
+@theme inline {
+  --color-background: var(--bg-main);
+  --color-foreground: var(--text-main);
+  --font-sans: "SUIT", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100dvh;
+  padding: 1rem 0.75rem;
+  background: var(--app-gradient);
+  color: var(--text-main);
+}
+
+.theme-toggle-fab {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+html.theme-light .theme-toggle-fab {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #173447 !important;
+  border-color: rgba(13, 110, 123, 0.35) !important;
+}
+
+html.theme-light [class*="bg-black/"] {
+  background-color: var(--surface-soft) !important;
+}
+
+html.theme-light [class*="bg-teal-950/"],
+html.theme-light [class*="bg-cyan-950/"],
+html.theme-light [class*="bg-[#031718]"] {
+  background-color: var(--surface-strong) !important;
+}
+
+html.theme-light [class*="border-teal-"],
+html.theme-light [class*="border-cyan-"] {
+  border-color: rgba(13, 110, 123, 0.24) !important;
+}
+
+html.theme-light [class*="text-teal-"],
+html.theme-light [class*="text-cyan-"] {
+  color: #1c3a4b !important;
+}
+
+html.theme-light [class*="placeholder:text-teal-"],
+html.theme-light [class*="placeholder:text-cyan-"] {
+  color: rgba(28, 58, 75, 0.45) !important;
+}
+
+html.theme-light .bg-teal-300,
+html.theme-light .bg-cyan-300 {
+  color: #132b36 !important;
+}
+
+.fc .fc-toolbar {
+  row-gap: 0.5rem;
+}
+
+.fc .fc-toolbar-chunk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.fc .fc-button-group {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.fc .fc-button-group > .fc-button {
+  border-radius: 0.65rem !important;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+}
+
+.fc {
+  --fc-page-bg-color: rgba(3, 28, 30, 0.9);
+  --fc-neutral-bg-color: rgba(14, 78, 80, 0.42);
+  --fc-border-color: rgba(124, 225, 214, 0.24);
+  --fc-neutral-text-color: #dffcf9;
+}
+
+.fc .fc-button {
+  border-radius: 0.7rem;
+  border: 1px solid rgba(112, 227, 216, 0.5);
+  background: rgba(24, 111, 106, 0.75);
+  color: #e8ffff;
+  font-size: 0.86rem;
+  line-height: 1.2;
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+  padding: 0.48rem 0.76rem;
+  touch-action: manipulation;
+}
+
+.fc .fc-button:hover {
+  background: rgba(42, 146, 140, 0.85);
+}
+
+.fc .fc-button-primary {
+  background: rgba(24, 111, 106, 0.75) !important;
+  border-color: rgba(112, 227, 216, 0.5) !important;
+  color: #e8ffff !important;
+}
+
+.fc .fc-button-primary:hover {
+  background: rgba(42, 146, 140, 0.85) !important;
+  border-color: rgba(148, 245, 235, 0.6) !important;
+  color: #f8ffff !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: rgba(8, 82, 78, 0.95) !important;
+  border-color: rgba(163, 255, 245, 0.72) !important;
+  color: #ffffff !important;
+}
+
+.fc .fc-button-primary:focus,
+.fc .fc-button-primary:focus-visible {
+  box-shadow: 0 0 0 2px rgba(163, 255, 245, 0.32) !important;
+}
+
+.fc .fc-toolbar-title {
+  white-space: nowrap;
+}
+
+.fc-theme-standard .fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: rgba(124, 225, 214, 0.22);
+}
+
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number {
+  color: #c7f4ef;
+}
+
+.fc .fc-col-header-cell.fc-holiday-red .fc-col-header-cell-cushion {
+  color: #ff4a4a !important;
+  font-weight: 700;
+}
+
+.fc .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number,
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number {
+  color: #ff4a4a !important;
+  font-weight: 700;
+}
+
+.fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion,
+.fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
+  color: #fecaca !important;
+  font-weight: 700;
+}
+
+.fc .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+.fc .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number {
+  color: #fecaca !important;
+  font-weight: 700;
+}
+
+.fc .fc-daygrid-day.fc-day-sun,
+.fc .fc-daygrid-day.fc-day-sat,
+.fc .fc-timegrid-col.fc-day-sun,
+.fc .fc-timegrid-col.fc-day-sat {
+  background: rgba(127, 29, 29, 0.16) !important;
+}
+
+.fc .fc-daygrid-day.fc-holiday-red,
+.fc .fc-timegrid-col.fc-holiday-red {
+  background: rgba(255, 28, 28, 0.52) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 74, 74, 0.7);
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background: rgba(80, 196, 187, 0.18);
+}
+
+.fc .fc-multimonth {
+  background: transparent !important;
+}
+
+.fc .fc-multimonth-month {
+  background: rgba(4, 27, 29, 0.9) !important;
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+
+.fc .fc-multimonth-title {
+  background: rgba(9, 84, 80, 0.72) !important;
+  color: #efffff !important;
+}
+
+.fc .fc-multimonth-daygrid .fc-daygrid-day {
+  background: rgba(4, 31, 34, 0.76) !important;
+}
+
+.fc .fc-multimonth-daygrid .fc-day-other {
+  background: rgba(3, 22, 24, 0.58) !important;
+}
+
+.fc .fc-multimonth-daygrid .fc-daygrid-day-number {
+  color: #f2ffff !important;
+  font-weight: 600;
+}
+
+.fc .fc-multimonth-daygrid .fc-day-other .fc-daygrid-day-number {
+  color: rgba(200, 243, 239, 0.76) !important;
+}
+
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-today {
+  background: rgba(80, 196, 187, 0.3) !important;
+}
+
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun,
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat {
+  background: rgba(101, 30, 30, 0.42) !important;
+}
+
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
+  background: rgba(255, 18, 18, 0.78) !important;
+}
+
+.fc .fc-multimonth .fc-scrollgrid,
+.fc .fc-multimonth .fc-scrollgrid-section > *,
+.fc .fc-multimonth .fc-scrollgrid-sync-table,
+.fc .fc-multimonth .fc-scrollgrid-sync-table th {
+  background: rgba(4, 27, 29, 0.92) !important;
+}
+
+.fc .fc-multimonth .fc-daygrid-day-top .fc-daygrid-day-number {
+  color: #f2ffff !important;
+}
+
+.fc .fc-multimonth .fc-col-header-cell {
+  background: rgba(7, 55, 57, 0.88) !important;
+}
+
+.fc .fc-multimonth .fc-col-header-cell-cushion {
+  color: rgba(216, 250, 246, 0.92) !important;
+}
+
+html.theme-light .fc {
+  --fc-page-bg-color: rgba(252, 255, 255, 0.95);
+  --fc-neutral-bg-color: rgba(223, 238, 243, 0.8);
+  --fc-border-color: rgba(84, 144, 152, 0.28);
+  --fc-neutral-text-color: #244552;
+}
+
+html.theme-light .fc .fc-button {
+  border-color: rgba(56, 125, 131, 0.36);
+  background: rgba(225, 245, 247, 0.95);
+  color: #1c4a5f;
+}
+
+html.theme-light .fc .fc-button:hover {
+  background: rgba(205, 237, 240, 0.98);
+}
+
+html.theme-light .fc .fc-button-primary {
+  background: rgba(225, 245, 247, 0.95) !important;
+  border-color: rgba(56, 125, 131, 0.36) !important;
+  color: #1c4a5f !important;
+}
+
+html.theme-light .fc .fc-button-primary:hover {
+  background: rgba(205, 237, 240, 0.98) !important;
+  border-color: rgba(52, 116, 122, 0.45) !important;
+  color: #163e51 !important;
+}
+
+html.theme-light .fc .fc-button-primary:not(:disabled).fc-button-active,
+html.theme-light .fc .fc-button-primary:not(:disabled):active {
+  background: rgba(166, 222, 228, 0.98) !important;
+  border-color: rgba(47, 107, 113, 0.52) !important;
+  color: #163544 !important;
+}
+
+html.theme-light .fc .fc-button-primary:focus,
+html.theme-light .fc .fc-button-primary:focus-visible {
+  box-shadow: 0 0 0 2px rgba(78, 153, 160, 0.28) !important;
+}
+
+html.theme-light .fc-theme-standard .fc-scrollgrid,
+html.theme-light .fc-theme-standard td,
+html.theme-light .fc-theme-standard th {
+  border-color: rgba(84, 144, 152, 0.28);
+}
+
+html.theme-light .fc .fc-col-header-cell-cushion,
+html.theme-light .fc .fc-daygrid-day-number {
+  color: #214757 !important;
+}
+
+html.theme-light .fc .fc-daygrid-day.fc-day-today {
+  background: rgba(141, 215, 207, 0.22);
+}
+
+html.theme-light .fc .fc-multimonth-month {
+  background: rgba(239, 248, 250, 0.96) !important;
+}
+
+html.theme-light .fc .fc-multimonth-title {
+  background: rgba(194, 226, 231, 0.95) !important;
+  color: #173f50 !important;
+}
+
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day {
+  background: rgba(247, 252, 253, 0.95) !important;
+}
+
+html.theme-light .fc .fc-multimonth-daygrid .fc-day-other {
+  background: rgba(236, 246, 248, 0.84) !important;
+}
+
+html.theme-light .fc .fc-multimonth .fc-scrollgrid,
+html.theme-light .fc .fc-multimonth .fc-scrollgrid-section > *,
+html.theme-light .fc .fc-multimonth .fc-scrollgrid-sync-table,
+html.theme-light .fc .fc-multimonth .fc-scrollgrid-sync-table th {
+  background: rgba(238, 248, 250, 0.95) !important;
+}
+
+html.theme-light .fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion,
+html.theme-light .fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
+  color: #e11d48 !important;
+}
+
+html.theme-light .fc .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+html.theme-light .fc .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number {
+  color: #e11d48 !important;
+}
+
+html.theme-light .fc .fc-daygrid-day.fc-day-sun,
+html.theme-light .fc .fc-daygrid-day.fc-day-sat,
+html.theme-light .fc .fc-timegrid-col.fc-day-sun,
+html.theme-light .fc .fc-timegrid-col.fc-day-sat {
+  background: rgba(244, 63, 94, 0.2) !important;
+}
+
+html.theme-light .fc .fc-col-header-cell.fc-holiday-red .fc-col-header-cell-cushion,
+html.theme-light .fc .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number,
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number {
+  color: #dc2626 !important;
+  font-weight: 800;
+}
+
+html.theme-light .fc .fc-daygrid-day.fc-holiday-red,
+html.theme-light .fc .fc-timegrid-col.fc-holiday-red {
+  background: rgba(239, 68, 68, 0.38) !important;
+  box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.58);
+}
+
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
+  background: rgba(239, 68, 68, 0.52) !important;
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    padding: 1.5rem 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .fc .fc-toolbar {
+    align-items: flex-start;
+    gap: 0.55rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1.02rem;
+  }
+
+  .fc .fc-button {
+    font-size: 0.83rem;
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    padding: 0.52rem 0.78rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .fc .fc-toolbar.fc-header-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .fc .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  .fc .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk:first-child {
+    justify-content: flex-start;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .fc .fc-button {
+    min-height: 2.55rem;
+    min-width: 2.45rem;
+    padding: 0.44rem 0.56rem;
+    font-size: 0.8rem;
+  }
+}
