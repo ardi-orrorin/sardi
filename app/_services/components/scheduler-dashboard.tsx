@@ -10,7 +10,11 @@ import luxonPlugin from "@fullcalendar/luxon3";
 import multiMonthPlugin from "@fullcalendar/multimonth";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import dayjs from "dayjs";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
+import dayjs, { Dayjs } from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/navigation";
@@ -111,12 +115,49 @@ type CalendarEvent = {
   };
 };
 
+dayjs.extend(customParseFormat);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const SEOUL_TZ = "Asia/Seoul";
 const SEOUL_OFFSET = "+09:00";
 const DEFAULT_LABEL_COLOR = "#0EA5E9";
+
+const pickerFieldSx = {
+  "& .MuiInputBase-root": {
+    minHeight: "42px",
+    borderRadius: "0.5rem",
+    color: "var(--time-picker-input-color) !important",
+    backgroundColor: "var(--surface-strong)"
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "var(--border-main)"
+  },
+  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "var(--border-main)"
+  },
+  "& .MuiSvgIcon-root": {
+    color: "var(--time-picker-input-color) !important",
+    opacity: 0.78
+  },
+  "& .MuiInputBase-input": {
+    color: "var(--time-picker-input-color) !important",
+    WebkitTextFillColor: "var(--time-picker-input-color) !important"
+  },
+  "& .MuiInputLabel-root": {
+    color: "var(--time-picker-input-color) !important",
+    opacity: 0.78
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "var(--time-picker-input-color) !important",
+    opacity: 0.95
+  }
+} as const;
+
+const toPickerTime = (value: string): Dayjs | null => {
+  const parsed = dayjs(value.trim(), ["HH:mm:ss", "HH:mm"], true);
+  return parsed.isValid() ? parsed : null;
+};
 
 const seedColor = (seed: string) => {
   let hash = 0;
@@ -652,7 +693,7 @@ export default function SchedulerDashboard() {
       const color = normalizeHexColor(item.schedule_label_color) || seedColor(scheduleTitle);
       return {
         id: item.id,
-        title: `${scheduleTitle} · ${item.schedule_label_name}`,
+        title: scheduleTitle,
         start: item.all_day ? toSeoulDate(item.start_ts) : toSeoulDateTime(item.start_ts),
         end: item.all_day ? toSeoulDate(item.end_ts) : toSeoulDateTime(item.end_ts),
         allDay: item.all_day,
@@ -1656,6 +1697,38 @@ export default function SchedulerDashboard() {
     );
   };
 
+  const requestDeleteScheduleGroup = () => {
+    if (!selectedSchedule?.group_id) {
+      return;
+    }
+
+    const groupId = selectedSchedule.group_id;
+    openConfirmDialog(
+      {
+        title: "반복 일정 전체 삭제",
+        message: "이 반복 그룹에 포함된 모든 일정을 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.",
+        confirmText: "전체 삭제",
+        tone: "danger"
+      },
+      async () => {
+        const payload = await FetchBuilder.delete()
+          .url(`/api/sardi/schedule-groups/${encodeURIComponent(groupId)}`)
+          .execute<{ deleted?: boolean; deleted_schedule_count?: number; error?: string }>();
+
+        if (!payload.deleted) {
+          throw new Error(payload.error ?? "반복 일정 전체 삭제 실패");
+        }
+
+        const deletedCount = Number.isFinite(payload.deleted_schedule_count) ? Number(payload.deleted_schedule_count) : 0;
+        closeScheduleDetail();
+        await loadSchedules();
+        setStatusMessage(
+          deletedCount > 0 ? `반복 일정 ${deletedCount}건을 삭제했습니다.` : "반복 일정을 삭제했습니다."
+        );
+      }
+    );
+  };
+
   const handleOpenScheduleDetail = (scheduleId: string) => {
     const item = scheduleItems.find((value) => value.id === scheduleId);
     if (!item) {
@@ -2014,28 +2087,58 @@ export default function SchedulerDashboard() {
                     />
                     종일 일정
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <p className="text-[11px] text-teal-100/60">시작 시간</p>
-                      <input
-                        type="time"
-                        disabled={manualForm.all_day}
-                        value={manualForm.start_time}
-                        onChange={(event) => setManualForm((prev) => ({ ...prev, start_time: event.target.value }))}
-                        className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm disabled:opacity-50"
-                      />
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] text-teal-100/60">시작 시간</p>
+                        <MobileTimePicker
+                          ampm={false}
+                          views={["hours", "minutes"]}
+                          format="HH:mm"
+                          disabled={manualForm.all_day}
+                          value={toPickerTime(manualForm.start_time)}
+                          onChange={(nextValue) => {
+                            if (!nextValue || !nextValue.isValid()) {
+                              return;
+                            }
+                            setManualForm((prev) => ({ ...prev, start_time: nextValue.format("HH:mm") }));
+                          }}
+                          slotProps={{
+                            textField: {
+                              className: "shift-time-picker-field",
+                              fullWidth: true,
+                              size: "small",
+                              sx: pickerFieldSx
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] text-teal-100/60">종료 시간</p>
+                        <MobileTimePicker
+                          ampm={false}
+                          views={["hours", "minutes"]}
+                          format="HH:mm"
+                          disabled={manualForm.all_day}
+                          value={toPickerTime(manualForm.end_time)}
+                          onChange={(nextValue) => {
+                            if (!nextValue || !nextValue.isValid()) {
+                              return;
+                            }
+                            setManualForm((prev) => ({ ...prev, end_time: nextValue.format("HH:mm") }));
+                          }}
+                          slotProps={{
+                            textField: {
+                              className: "shift-time-picker-field",
+                              fullWidth: true,
+                              size: "small",
+                              sx: pickerFieldSx
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-[11px] text-teal-100/60">종료 시간</p>
-                      <input
-                        type="time"
-                        disabled={manualForm.all_day}
-                        value={manualForm.end_time}
-                        onChange={(event) => setManualForm((prev) => ({ ...prev, end_time: event.target.value }))}
-                        className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm disabled:opacity-50"
-                      />
-                    </div>
-                  </div>
+                  </LocalizationProvider>
                 </div>
 
                 <div className="space-y-2 rounded-lg border border-teal-100/15 bg-teal-950/15 p-3">
@@ -2321,28 +2424,58 @@ export default function SchedulerDashboard() {
                     />
                     종일 일정
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <p className="text-[11px] text-cyan-100/60">시작 시간</p>
-                      <input
-                        type="time"
-                        disabled={detailForm.all_day}
-                        value={detailForm.start_time}
-                        onChange={(event) => setDetailForm((prev) => ({ ...prev, start_time: event.target.value }))}
-                        className="w-full rounded-lg border border-cyan-100/20 bg-cyan-950/30 px-3 py-2 text-sm disabled:opacity-50"
-                      />
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] text-cyan-100/60">시작 시간</p>
+                        <MobileTimePicker
+                          ampm={false}
+                          views={["hours", "minutes"]}
+                          format="HH:mm"
+                          disabled={detailForm.all_day}
+                          value={toPickerTime(detailForm.start_time)}
+                          onChange={(nextValue) => {
+                            if (!nextValue || !nextValue.isValid()) {
+                              return;
+                            }
+                            setDetailForm((prev) => ({ ...prev, start_time: nextValue.format("HH:mm") }));
+                          }}
+                          slotProps={{
+                            textField: {
+                              className: "shift-time-picker-field",
+                              fullWidth: true,
+                              size: "small",
+                              sx: pickerFieldSx
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] text-cyan-100/60">종료 시간</p>
+                        <MobileTimePicker
+                          ampm={false}
+                          views={["hours", "minutes"]}
+                          format="HH:mm"
+                          disabled={detailForm.all_day}
+                          value={toPickerTime(detailForm.end_time)}
+                          onChange={(nextValue) => {
+                            if (!nextValue || !nextValue.isValid()) {
+                              return;
+                            }
+                            setDetailForm((prev) => ({ ...prev, end_time: nextValue.format("HH:mm") }));
+                          }}
+                          slotProps={{
+                            textField: {
+                              className: "shift-time-picker-field",
+                              fullWidth: true,
+                              size: "small",
+                              sx: pickerFieldSx
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-[11px] text-cyan-100/60">종료 시간</p>
-                      <input
-                        type="time"
-                        disabled={detailForm.all_day}
-                        value={detailForm.end_time}
-                        onChange={(event) => setDetailForm((prev) => ({ ...prev, end_time: event.target.value }))}
-                        className="w-full rounded-lg border border-cyan-100/20 bg-cyan-950/30 px-3 py-2 text-sm disabled:opacity-50"
-                      />
-                    </div>
-                  </div>
+                  </LocalizationProvider>
                 </div>
 
                 <div className="space-y-1">
@@ -2483,19 +2616,30 @@ export default function SchedulerDashboard() {
 
                   {selectedSchedule.group_id ? (
                     <div className="rounded-lg border border-cyan-100/15 bg-cyan-950/20 px-3 py-2">
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-2 flex items-center justify-between gap-2">
                         <p className="text-[11px] text-cyan-100/60">반복 일정 목록</p>
-                        {repeatGroupItems.length > 4 ? (
+                        <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => setRepeatGroupExpanded((prev) => !prev)}
-                            className="inline-flex items-center gap-1 rounded border border-cyan-300/35 px-2 py-0.5 text-[11px] text-cyan-100"
-                            aria-label={repeatGroupExpanded ? "반복 일정 목록 접기" : "반복 일정 목록 더보기"}
-                            title={repeatGroupExpanded ? "접기" : "더보기"}>
-                            {repeatGroupExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                            {!repeatGroupExpanded ? <span>+{hiddenRepeatGroupCount}</span> : null}
+                            onClick={requestDeleteScheduleGroup}
+                            className="inline-flex items-center gap-1 rounded border border-rose-300/45 px-2 py-0.5 text-[11px] text-rose-200"
+                            aria-label="반복 일정 전체 삭제"
+                            title="반복 일정 전체 삭제">
+                            <TrashIcon className="h-3.5 w-3.5" />
+                            전체
                           </button>
-                        ) : null}
+                          {repeatGroupItems.length > 4 ? (
+                            <button
+                              type="button"
+                              onClick={() => setRepeatGroupExpanded((prev) => !prev)}
+                              className="inline-flex items-center gap-1 rounded border border-cyan-300/35 px-2 py-0.5 text-[11px] text-cyan-100"
+                              aria-label={repeatGroupExpanded ? "반복 일정 목록 접기" : "반복 일정 목록 더보기"}
+                              title={repeatGroupExpanded ? "접기" : "더보기"}>
+                              {repeatGroupExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                              {!repeatGroupExpanded ? <span>+{hiddenRepeatGroupCount}</span> : null}
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
 
                       {repeatGroupLoading ? (
