@@ -323,7 +323,7 @@ const collectYearMonthTargets = (startIso: string, endIso: string) => {
   return targets;
 };
 
-const buildHolidayDateSet = (items: ScheduleItem[]) => {
+const buildUserHolidayDateSet = (items: ScheduleItem[]) => {
   const dates = new Set<string>();
 
   for (const item of items) {
@@ -514,6 +514,16 @@ function ListIcon({ className = "h-3.5 w-3.5" }: IconProps) {
   );
 }
 
+function CalendarDayIcon({ className = "h-3.5 w-3.5" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+      <path d="M9 14h6M9 18h4" />
+    </svg>
+  );
+}
+
 function CloseIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
@@ -550,6 +560,7 @@ export default function SchedulerDashboard() {
   const [labels, setLabels] = useState<ScheduleLabel[]>([]);
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
   const [isFilterColorOnly, setIsFilterColorOnly] = useState(false);
+  const [isWeekendHolidayThemeEnabled, setIsWeekendHolidayThemeEnabled] = useState(true);
   const [isLabelModalOpen, setIsLabelModalOpen] = useState(false);
   const [labelModalTargetId, setLabelModalTargetId] = useState<string | null>(null);
   const [labelModalForm, setLabelModalForm] = useState({
@@ -655,21 +666,24 @@ export default function SchedulerDashboard() {
     });
   }, [visibleScheduleItems]);
 
-  const titleHolidayDateSet = useMemo(() => buildHolidayDateSet(visibleScheduleItems), [visibleScheduleItems]);
-
-  const holidayDateSet = useMemo(() => {
-    const merged = new Set<string>(publicHolidayDateSet);
-    for (const value of titleHolidayDateSet) {
-      merged.add(value);
-    }
-    return merged;
-  }, [publicHolidayDateSet, titleHolidayDateSet]);
+  const userHolidayDateSet = useMemo(() => buildUserHolidayDateSet(visibleScheduleItems), [visibleScheduleItems]);
 
   const getHolidayClasses = useCallback(
     (date: Date) => {
-      return holidayDateSet.has(toSeoulDateKeyFromDate(date)) ? ["fc-holiday-red"] : [];
+      const dateKey = toSeoulDateKeyFromDate(date);
+      const classes: string[] = [];
+
+      if (userHolidayDateSet.has(dateKey)) {
+        classes.push("fc-user-holiday");
+      }
+
+      if (isWeekendHolidayThemeEnabled && publicHolidayDateSet.has(dateKey)) {
+        classes.push("fc-holiday-red");
+      }
+
+      return classes;
     },
-    [holidayDateSet]
+    [isWeekendHolidayThemeEnabled, publicHolidayDateSet, userHolidayDateSet]
   );
 
   const renderDayCellContent = useCallback(
@@ -1669,7 +1683,21 @@ export default function SchedulerDashboard() {
             : "md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]"
         }`}>
         <div className="flex min-h-[100dvh] flex-col md:h-full md:min-h-0">
-          <div className="min-h-[calc(100dvh-12rem)] flex-1 md:min-h-0">
+          <div className="mb-2 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsWeekendHolidayThemeEnabled((prev) => !prev)}
+              className="inline-flex h-8 items-center gap-1 rounded-md border border-cyan-300/35 px-2 text-[11px] text-cyan-100"
+              aria-label={isWeekendHolidayThemeEnabled ? "토일 공휴일 테마 끄기" : "토일 공휴일 테마 켜기"}
+              title={isWeekendHolidayThemeEnabled ? "토일/공휴일 테마 ON" : "토일/공휴일 테마 OFF"}>
+              <CalendarDayIcon />
+              <span>{isWeekendHolidayThemeEnabled ? "토일·공휴일 ON" : "토일·공휴일 OFF"}</span>
+            </button>
+          </div>
+          <div
+            className={`min-h-[calc(100dvh-12rem)] flex-1 md:min-h-0 ${
+              isWeekendHolidayThemeEnabled ? "" : "calendar-weekend-holiday-theme-off"
+            }`}>
             <FullCalendar
               ref={calendarRef}
               plugins={[luxonPlugin, multiMonthPlugin, dayGridPlugin, timeGridPlugin, interactionPlugin]}
