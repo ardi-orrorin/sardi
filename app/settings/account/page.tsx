@@ -15,7 +15,7 @@ export default async function AccountSettingsPage() {
 
   return (
     <div className="app-shell">
-      <main className="mx-auto w-full max-w-6xl">
+      <main className="mx-auto w-full max-w-none">
         <AccountSettings />
       </main>
     </div>

@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --bg-main: #031314;
-  --text-main: #def6f4;
-  --app-gradient: radial-gradient(circle at top, #0f766e 0%, #052728 48%, #031314 100%);
-  --surface-strong: rgba(1, 15, 16, 0.46);
-  --surface-soft: rgba(4, 32, 34, 0.68);
-  --border-main: rgba(131, 235, 224, 0.22);
+  --bg-main: #080809;
+  --text-main: #efeff1;
+  --app-gradient: radial-gradient(circle at top, #1a1a1c 0%, #101012 46%, #080809 100%);
+  --surface-strong: rgba(18, 18, 20, 0.86);
+  --surface-soft: rgba(12, 12, 14, 0.72);
+  --border-main: rgba(161, 161, 170, 0.28);
 }
 
 html.theme-light {
@@ -74,7 +74,7 @@ textarea {
 
 .app-shell {
   min-height: 100dvh;
-  padding: 1rem 0.75rem;
+  padding: 0.35rem 0.35rem;
   background: var(--app-gradient);
   color: var(--text-main);
 }
@@ -86,10 +86,85 @@ textarea {
     border-color 0.2s ease;
 }
 
+.top-navbar-title {
+  color: var(--text-main) !important;
+}
+
 html.theme-light .theme-toggle-fab {
   background: rgba(255, 255, 255, 0.9) !important;
   color: #173447 !important;
   border-color: rgba(13, 110, 123, 0.35) !important;
+}
+
+html.theme-light .top-navbar-brand {
+  color: rgba(22, 78, 99, 0.72) !important;
+}
+
+html.theme-light .top-navbar-title {
+  color: #0f172a !important;
+}
+
+html.theme-light .top-navbar-action {
+  border-color: rgba(71, 85, 105, 0.4) !important;
+  background: rgba(241, 245, 249, 0.96) !important;
+  color: #0f172a !important;
+}
+
+html.theme-light .top-navbar-action:hover {
+  background: rgba(226, 232, 240, 0.96) !important;
+}
+
+html.theme-light .top-navbar-link-inactive {
+  border-color: rgba(71, 85, 105, 0.42) !important;
+  background: rgba(241, 245, 249, 0.95) !important;
+  color: #0f172a !important;
+}
+
+html.theme-light .top-navbar-link-inactive:hover {
+  background: rgba(226, 232, 240, 0.95) !important;
+}
+
+html.theme-light .top-navbar-link-active {
+  border-color: rgba(15, 23, 42, 0.55) !important;
+  background: rgba(203, 213, 225, 0.96) !important;
+  color: #020617 !important;
+}
+
+html.theme-dark .theme-toggle-fab {
+  background: rgba(8, 8, 10, 0.92) !important;
+  color: #f4f4f5 !important;
+  border-color: rgba(161, 161, 170, 0.5) !important;
+}
+
+html.theme-dark [class*="bg-black/"] {
+  background-color: rgba(12, 12, 14, 0.84) !important;
+}
+
+html.theme-dark [class*="bg-teal-950/"],
+html.theme-dark [class*="bg-cyan-950/"],
+html.theme-dark [class*="bg-[#031718]"] {
+  background-color: rgba(19, 19, 22, 0.94) !important;
+}
+
+html.theme-dark [class*="border-teal-"],
+html.theme-dark [class*="border-cyan-"] {
+  border-color: rgba(113, 113, 122, 0.45) !important;
+}
+
+html.theme-dark [class*="text-teal-"],
+html.theme-dark [class*="text-cyan-"] {
+  color: #e5e7eb !important;
+}
+
+html.theme-dark [class*="placeholder:text-teal-"],
+html.theme-dark [class*="placeholder:text-cyan-"] {
+  color: rgba(212, 212, 216, 0.45) !important;
+}
+
+html.theme-dark .bg-teal-300,
+html.theme-dark .bg-cyan-300 {
+  background-color: #3f3f46 !important;
+  color: #fafafa !important;
 }
 
 html.theme-light [class*="bg-black/"] {
@@ -148,17 +223,17 @@ html.theme-light .bg-cyan-300 {
 }
 
 .fc {
-  --fc-page-bg-color: rgba(3, 28, 30, 0.9);
-  --fc-neutral-bg-color: rgba(14, 78, 80, 0.42);
-  --fc-border-color: rgba(124, 225, 214, 0.24);
-  --fc-neutral-text-color: #dffcf9;
+  --fc-page-bg-color: rgba(11, 11, 13, 0.92);
+  --fc-neutral-bg-color: rgba(36, 36, 40, 0.84);
+  --fc-border-color: rgba(113, 113, 122, 0.44);
+  --fc-neutral-text-color: #e4e4e7;
 }
 
 .fc .fc-button {
   border-radius: 0.7rem;
-  border: 1px solid rgba(112, 227, 216, 0.5);
-  background: rgba(24, 111, 106, 0.75);
-  color: #e8ffff;
+  border: 1px solid rgba(161, 161, 170, 0.56);
+  background: rgba(39, 39, 42, 0.9);
+  color: #f4f4f5;
   font-size: 0.86rem;
   line-height: 1.2;
   min-height: 2.5rem;
@@ -168,31 +243,31 @@ html.theme-light .bg-cyan-300 {
 }
 
 .fc .fc-button:hover {
-  background: rgba(42, 146, 140, 0.85);
+  background: rgba(63, 63, 70, 0.96);
 }
 
 .fc .fc-button-primary {
-  background: rgba(24, 111, 106, 0.75) !important;
-  border-color: rgba(112, 227, 216, 0.5) !important;
-  color: #e8ffff !important;
+  background: rgba(39, 39, 42, 0.9) !important;
+  border-color: rgba(161, 161, 170, 0.56) !important;
+  color: #f4f4f5 !important;
 }
 
 .fc .fc-button-primary:hover {
-  background: rgba(42, 146, 140, 0.85) !important;
-  border-color: rgba(148, 245, 235, 0.6) !important;
-  color: #f8ffff !important;
+  background: rgba(63, 63, 70, 0.96) !important;
+  border-color: rgba(212, 212, 216, 0.62) !important;
+  color: #fafafa !important;
 }
 
 .fc .fc-button-primary:not(:disabled).fc-button-active,
 .fc .fc-button-primary:not(:disabled):active {
-  background: rgba(8, 82, 78, 0.95) !important;
-  border-color: rgba(163, 255, 245, 0.72) !important;
+  background: rgba(24, 24, 27, 0.98) !important;
+  border-color: rgba(228, 228, 231, 0.72) !important;
   color: #ffffff !important;
 }
 
 .fc .fc-button-primary:focus,
 .fc .fc-button-primary:focus-visible {
-  box-shadow: 0 0 0 2px rgba(163, 255, 245, 0.32) !important;
+  box-shadow: 0 0 0 2px rgba(212, 212, 216, 0.34) !important;
 }
 
 .fc .fc-toolbar-title {
@@ -202,54 +277,92 @@ html.theme-light .bg-cyan-300 {
 .fc-theme-standard .fc-scrollgrid,
 .fc-theme-standard td,
 .fc-theme-standard th {
-  border-color: rgba(124, 225, 214, 0.22);
+  border-color: rgba(113, 113, 122, 0.42);
 }
 
 .fc .fc-col-header-cell-cushion,
 .fc .fc-daygrid-day-number {
-  color: #c7f4ef;
+  color: #e4e4e7;
+}
+
+.fc .fc-daygrid-day-number {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.08rem;
+  line-height: 1.05;
+  width: 100%;
+  max-width: 100%;
+  text-align: right;
+}
+
+.fc .fc-daygrid-day-number .fc-day-holiday-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: inherit;
+  opacity: 0.92;
+}
+
+.fc .fc-multimonth-daygrid .fc-daygrid-day-number .fc-day-holiday-name {
+  max-width: 100%;
+  font-size: 0.66rem;
 }
 
 .fc .fc-col-header-cell.fc-holiday-red .fc-col-header-cell-cushion {
-  color: #ff4a4a !important;
+  color: #ff9fa3 !important;
   font-weight: 700;
 }
 
 .fc .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number,
 .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number {
-  color: #ff4a4a !important;
+  color: #ff9fa3 !important;
   font-weight: 700;
 }
 
-.fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion,
+.fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
+  color: #ff9fa3 !important;
+  font-weight: 700;
+}
+
 .fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
-  color: #fecaca !important;
+  color: #93c5fd !important;
   font-weight: 700;
 }
 
 .fc .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number {
+  color: #ff9fa3 !important;
+  font-weight: 700;
+}
+
 .fc .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
-.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
 .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number {
-  color: #fecaca !important;
+  color: #93c5fd !important;
   font-weight: 700;
 }
 
 .fc .fc-daygrid-day.fc-day-sun,
-.fc .fc-daygrid-day.fc-day-sat,
-.fc .fc-timegrid-col.fc-day-sun,
-.fc .fc-timegrid-col.fc-day-sat {
+.fc .fc-timegrid-col.fc-day-sun {
   background: rgba(127, 29, 29, 0.16) !important;
+}
+
+.fc .fc-daygrid-day.fc-day-sat,
+.fc .fc-timegrid-col.fc-day-sat {
+  background: rgba(30, 58, 138, 0.18) !important;
 }
 
 .fc .fc-daygrid-day.fc-holiday-red,
 .fc .fc-timegrid-col.fc-holiday-red {
-  background: rgba(255, 28, 28, 0.52) !important;
-  box-shadow: inset 0 0 0 1px rgba(255, 74, 74, 0.7);
+  background: rgba(127, 29, 29, 0.16) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 159, 163, 0.34);
 }
 
 .fc .fc-daygrid-day.fc-day-today {
-  background: rgba(80, 196, 187, 0.18);
+  background: rgba(148, 163, 184, 0.2);
 }
 
 .fc .fc-multimonth {
@@ -257,63 +370,66 @@ html.theme-light .bg-cyan-300 {
 }
 
 .fc .fc-multimonth-month {
-  background: rgba(4, 27, 29, 0.9) !important;
+  background: rgba(18, 18, 20, 0.95) !important;
   border-radius: 0.6rem;
   overflow: hidden;
 }
 
 .fc .fc-multimonth-title {
-  background: rgba(9, 84, 80, 0.72) !important;
-  color: #efffff !important;
+  background: rgba(39, 39, 42, 0.92) !important;
+  color: #f5f5f5 !important;
 }
 
 .fc .fc-multimonth-daygrid .fc-daygrid-day {
-  background: rgba(4, 31, 34, 0.76) !important;
+  background: rgba(20, 20, 23, 0.88) !important;
 }
 
 .fc .fc-multimonth-daygrid .fc-day-other {
-  background: rgba(3, 22, 24, 0.58) !important;
+  background: rgba(11, 11, 13, 0.7) !important;
 }
 
 .fc .fc-multimonth-daygrid .fc-daygrid-day-number {
-  color: #f2ffff !important;
+  color: #f4f4f5 !important;
   font-weight: 600;
 }
 
 .fc .fc-multimonth-daygrid .fc-day-other .fc-daygrid-day-number {
-  color: rgba(200, 243, 239, 0.76) !important;
+  color: rgba(212, 212, 216, 0.78) !important;
 }
 
 .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-today {
-  background: rgba(80, 196, 187, 0.3) !important;
+  background: rgba(148, 163, 184, 0.28) !important;
 }
 
-.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun,
-.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat {
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun {
   background: rgba(101, 30, 30, 0.42) !important;
 }
 
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat {
+  background: rgba(30, 58, 138, 0.4) !important;
+}
+
 .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
-  background: rgba(255, 18, 18, 0.78) !important;
+  background: rgba(101, 30, 30, 0.42) !important;
 }
 
 .fc .fc-multimonth .fc-scrollgrid,
 .fc .fc-multimonth .fc-scrollgrid-section > *,
 .fc .fc-multimonth .fc-scrollgrid-sync-table,
 .fc .fc-multimonth .fc-scrollgrid-sync-table th {
-  background: rgba(4, 27, 29, 0.92) !important;
+  background: rgba(18, 18, 20, 0.95) !important;
 }
 
 .fc .fc-multimonth .fc-daygrid-day-top .fc-daygrid-day-number {
-  color: #f2ffff !important;
+  color: #f5f5f5 !important;
 }
 
 .fc .fc-multimonth .fc-col-header-cell {
-  background: rgba(7, 55, 57, 0.88) !important;
+  background: rgba(32, 32, 35, 0.92) !important;
 }
 
 .fc .fc-multimonth .fc-col-header-cell-cushion {
-  color: rgba(216, 250, 246, 0.92) !important;
+  color: rgba(228, 228, 231, 0.92) !important;
 }
 
 html.theme-light .fc {
@@ -396,45 +512,78 @@ html.theme-light .fc .fc-multimonth .fc-scrollgrid-sync-table th {
   background: rgba(238, 248, 250, 0.95) !important;
 }
 
-html.theme-light .fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion,
-html.theme-light .fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
+html.theme-light .fc .fc-multimonth .fc-col-header-cell {
+  background: rgba(225, 236, 241, 0.95) !important;
+}
+
+html.theme-light .fc .fc-multimonth .fc-col-header-cell-cushion {
+  color: #334155 !important;
+}
+
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day-number {
+  color: #1e293b !important;
+}
+
+html.theme-light .fc .fc-multimonth-daygrid .fc-day-other .fc-daygrid-day-number {
+  color: rgba(71, 85, 105, 0.72) !important;
+}
+
+html.theme-light .fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
   color: #e11d48 !important;
+}
+
+html.theme-light .fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
+  color: #2563eb !important;
 }
 
 html.theme-light .fc .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
-html.theme-light .fc .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
-html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
-html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number {
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number {
   color: #e11d48 !important;
 }
 
+html.theme-light .fc .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number {
+  color: #2563eb !important;
+}
+
 html.theme-light .fc .fc-daygrid-day.fc-day-sun,
-html.theme-light .fc .fc-daygrid-day.fc-day-sat,
-html.theme-light .fc .fc-timegrid-col.fc-day-sun,
-html.theme-light .fc .fc-timegrid-col.fc-day-sat {
+html.theme-light .fc .fc-timegrid-col.fc-day-sun {
   background: rgba(244, 63, 94, 0.2) !important;
+}
+
+html.theme-light .fc .fc-daygrid-day.fc-day-sat,
+html.theme-light .fc .fc-timegrid-col.fc-day-sat {
+  background: rgba(59, 130, 246, 0.2) !important;
 }
 
 html.theme-light .fc .fc-col-header-cell.fc-holiday-red .fc-col-header-cell-cushion,
 html.theme-light .fc .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number,
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number {
-  color: #dc2626 !important;
-  font-weight: 800;
+  color: #e11d48 !important;
+  font-weight: 700;
 }
 
 html.theme-light .fc .fc-daygrid-day.fc-holiday-red,
 html.theme-light .fc .fc-timegrid-col.fc-holiday-red {
-  background: rgba(239, 68, 68, 0.38) !important;
-  box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.58);
+  background: rgba(244, 63, 94, 0.2) !important;
+  box-shadow: inset 0 0 0 1px rgba(225, 29, 72, 0.3);
 }
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
-  background: rgba(239, 68, 68, 0.52) !important;
+  background: rgba(251, 113, 133, 0.3) !important;
+}
+
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun {
+  background: rgba(251, 113, 133, 0.3) !important;
+}
+
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat {
+  background: rgba(96, 165, 250, 0.3) !important;
 }
 
 @media (min-width: 768px) {
   .app-shell {
-    padding: 1.5rem 1.5rem;
+    padding: 0.75rem 0.75rem;
   }
 }
 
