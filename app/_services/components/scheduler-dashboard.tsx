@@ -3,6 +3,7 @@
 import { FetchBuilder } from "@/app/_commons/utils/func";
 import { MarkdownEditor, MarkdownViewer } from "@/app/_services/components/markdown-editor";
 import { NumberDropdown } from "@/app/_services/components/number-dropdown";
+import { TopNavbar } from "@/app/_services/components/top-navbar";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import luxonPlugin from "@fullcalendar/luxon3";
@@ -12,7 +13,6 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -54,6 +54,7 @@ type ScheduleItem = {
 
 type ScheduleDetailForm = {
   title: string;
+  schedule_label_id: string;
   start_date: string;
   end_date: string;
   start_time: string;
@@ -66,6 +67,21 @@ type RepeatUnitValue = "week" | "month" | "year";
 
 type ScheduleListResponse = {
   items: ScheduleItem[];
+};
+
+type PublicHolidayItem = {
+  date_kind: string;
+  date_name: string;
+  is_holiday: boolean;
+  locdate: string;
+  seq?: number;
+};
+
+type PublicHolidayListResponse = {
+  year: number;
+  month: number;
+  total_count: number;
+  items: PublicHolidayItem[];
 };
 
 type ScheduleGroupDetailResponse = {
@@ -191,6 +207,7 @@ const toScheduleDetailForm = (item: ScheduleItem): ScheduleDetailForm => {
 
   return {
     title: item.title?.trim() || item.schedule_type_name,
+    schedule_label_id: item.schedule_label_id,
     start_date: start.format("YYYY-MM-DD"),
     end_date: safeEnd.format("YYYY-MM-DD"),
     start_time: start.format("HH:mm"),
@@ -280,6 +297,30 @@ const toSeoulDateKeyFromDate = (date: Date) => {
   const month = parts.find((item) => item.type === "month")?.value ?? "01";
   const day = parts.find((item) => item.type === "day")?.value ?? "01";
   return `${year}-${month}-${day}`;
+};
+
+const collectYearMonthTargets = (startIso: string, endIso: string) => {
+  const startMonth = dayjs(startIso).tz(SEOUL_TZ).startOf("month");
+  const endMonth = dayjs(endIso).tz(SEOUL_TZ).subtract(1, "day").startOf("month");
+
+  if (!startMonth.isValid() || !endMonth.isValid()) {
+    return [] as Array<{ year: number; month: number }>;
+  }
+
+  const targets: Array<{ year: number; month: number }> = [];
+  let cursor = startMonth;
+  let guard = 0;
+
+  while ((cursor.isBefore(endMonth) || cursor.isSame(endMonth, "month")) && guard < 120) {
+    targets.push({
+      year: cursor.year(),
+      month: cursor.month() + 1
+    });
+    cursor = cursor.add(1, "month");
+    guard += 1;
+  }
+
+  return targets;
 };
 
 const buildHolidayDateSet = (items: ScheduleItem[]) => {
@@ -473,16 +514,6 @@ function ListIcon({ className = "h-3.5 w-3.5" }: IconProps) {
   );
 }
 
-function LogoutIcon({ className = "h-4 w-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <path d="M16 17l5-5-5-5" />
-      <path d="M21 12H9" />
-    </svg>
-  );
-}
-
 function CloseIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
@@ -511,38 +542,6 @@ function ChevronUpIcon({ className = "h-3.5 w-3.5" }: IconProps) {
 export default function SchedulerDashboard() {
   const router = useRouter();
   const calendarRef = useRef<FullCalendar>(null);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-
-  // 최소 스와이프 거리 (px)
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && calendarRef.current) {
-      calendarRef.current.getApi().next();
-    }
-    if (isRightSwipe && calendarRef.current) {
-      calendarRef.current.getApi().prev();
-    }
-
-    setTouchStart(null);
-    setTouchEnd(null);
-  };
 
   const [statusMessage, setStatusMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -568,6 +567,8 @@ export default function SchedulerDashboard() {
   });
 
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
+  const [publicHolidayDateSet, setPublicHolidayDateSet] = useState<Set<string>>(new Set());
+  const [publicHolidayNameMap, setPublicHolidayNameMap] = useState<Record<string, string>>({});
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const [repeatGroupItems, setRepeatGroupItems] = useState<ScheduleItem[]>([]);
@@ -587,6 +588,7 @@ export default function SchedulerDashboard() {
   const [confirmDialogBusy, setConfirmDialogBusy] = useState(false);
   const [detailForm, setDetailForm] = useState<ScheduleDetailForm>({
     title: "",
+    schedule_label_id: "",
     start_date: toDateInput(dayjs()),
     end_date: toDateInput(dayjs()),
     start_time: "09:00",
@@ -653,13 +655,42 @@ export default function SchedulerDashboard() {
     });
   }, [visibleScheduleItems]);
 
-  const holidayDateSet = useMemo(() => buildHolidayDateSet(visibleScheduleItems), [visibleScheduleItems]);
+  const titleHolidayDateSet = useMemo(() => buildHolidayDateSet(visibleScheduleItems), [visibleScheduleItems]);
+
+  const holidayDateSet = useMemo(() => {
+    const merged = new Set<string>(publicHolidayDateSet);
+    for (const value of titleHolidayDateSet) {
+      merged.add(value);
+    }
+    return merged;
+  }, [publicHolidayDateSet, titleHolidayDateSet]);
 
   const getHolidayClasses = useCallback(
     (date: Date) => {
       return holidayDateSet.has(toSeoulDateKeyFromDate(date)) ? ["fc-holiday-red"] : [];
     },
     [holidayDateSet]
+  );
+
+  const renderDayCellContent = useCallback(
+    (arg: { date: Date; dayNumberText: string }) => {
+      const dateNumber = arg.dayNumberText.replace(/일$/, "");
+      const holidayName = publicHolidayNameMap[toSeoulDateKeyFromDate(arg.date)];
+
+      if (!holidayName) {
+        return dateNumber;
+      }
+
+      return (
+        <>
+          <span>{dateNumber}</span>
+          <span className="fc-day-holiday-name" title={holidayName}>
+            {holidayName}
+          </span>
+        </>
+      );
+    },
+    [publicHolidayNameMap]
   );
 
   const visibleRepeatGroupItems = useMemo(
@@ -673,7 +704,6 @@ export default function SchedulerDashboard() {
       labels.map((item) => ({
         value: item.id,
         label: item.name,
-        subtitle: item.color,
         color: item.color
       })),
     [labels]
@@ -795,6 +825,74 @@ export default function SchedulerDashboard() {
   useEffect(() => {
     void loadSchedules();
   }, [loadSchedules]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPublicHolidays = async () => {
+      const targets = collectYearMonthTargets(range.start, range.end);
+      if (targets.length === 0) {
+        if (!cancelled) {
+          setPublicHolidayDateSet(new Set());
+          setPublicHolidayNameMap({});
+        }
+        return;
+      }
+
+      try {
+        const responses = await Promise.all(
+          targets.map(({ year, month }) =>
+            FetchBuilder.get()
+              .url(`/api/sardi/holidays/public?year=${year}&month=${String(month).padStart(2, "0")}`)
+              .execute<PublicHolidayListResponse | { error?: string }>()
+          )
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        const nextDates = new Set<string>();
+        const nextNameMap: Record<string, string> = {};
+        for (const payload of responses) {
+          if (!("items" in payload)) {
+            throw new Error(payload.error ?? "공휴일 조회 실패");
+          }
+
+          for (const item of payload.items) {
+            if (!item.is_holiday) {
+              continue;
+            }
+
+            const raw = item.locdate?.trim();
+            if (!raw || !/^\d{8}$/.test(raw)) {
+              continue;
+            }
+
+            const dateKey = `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+            nextDates.add(dateKey);
+
+            const dateName = item.date_name?.trim();
+            if (dateName && !nextNameMap[dateKey]) {
+              nextNameMap[dateKey] = dateName;
+            }
+          }
+        }
+
+        setPublicHolidayDateSet(nextDates);
+        setPublicHolidayNameMap(nextNameMap);
+      } catch (error) {
+        if (!cancelled) {
+          console.error("public holiday GET error:", error);
+        }
+      }
+    };
+
+    void loadPublicHolidays();
+    return () => {
+      cancelled = true;
+    };
+  }, [range.end, range.start]);
 
   const handleLogout = async () => {
     await FetchBuilder.post().url("/api/auth/logout").execute();
@@ -941,15 +1039,15 @@ export default function SchedulerDashboard() {
 
     openConfirmDialog(
       {
-        title: "라벨 삭제",
-        message: `${targetName} 라벨을 삭제하시겠습니까? 라벨이 일정에 사용 중이면 삭제되지 않습니다.`,
-        confirmText: "삭제",
+        title: "라벨 삭제 경고",
+        message: `${targetName} 라벨을 삭제하면 이 라벨이 연결된 일정도 모두 함께 삭제됩니다. 계속하시겠습니까?`,
+        confirmText: "삭제 진행",
         tone: "danger"
       },
       async () => {
         const payload = await FetchBuilder.delete()
           .url(`/api/sardi/schedule-labels/${encodeURIComponent(targetId)}`)
-          .execute<{ deleted?: boolean; error?: string }>();
+          .execute<{ deleted?: boolean; deleted_schedule_count?: number; error?: string }>();
 
         if (!payload.deleted) {
           throw new Error(payload.error ?? "라벨 삭제 실패");
@@ -957,7 +1055,14 @@ export default function SchedulerDashboard() {
 
         await Promise.all([loadLabels(), loadSchedules()]);
         closeLabelModal();
-        setStatusMessage("라벨을 삭제했습니다.");
+        const deletedScheduleCount = Number.isFinite(payload.deleted_schedule_count)
+          ? Number(payload.deleted_schedule_count)
+          : 0;
+        setStatusMessage(
+          deletedScheduleCount > 0
+            ? `라벨과 연관 일정 ${deletedScheduleCount}건을 삭제했습니다.`
+            : "라벨을 삭제했습니다."
+        );
       }
     );
   };
@@ -1397,6 +1502,11 @@ export default function SchedulerDashboard() {
       return;
     }
 
+    if (!detailForm.schedule_label_id) {
+      setStatusMessage("라벨을 선택하세요.");
+      return;
+    }
+
     const startDate = dayjs(detailForm.start_date);
     const endDate = dayjs(detailForm.end_date);
     if (!startDate.isValid() || !endDate.isValid()) {
@@ -1462,6 +1572,7 @@ export default function SchedulerDashboard() {
           .url(`/api/sardi/schedules/${encodeURIComponent(selectedSchedule.id)}`)
           .body({
             title: detailForm.title.trim(),
+            schedule_label_id: detailForm.schedule_label_id,
             start_ts: startTs,
             end_ts: endTs,
             all_day: detailForm.all_day,
@@ -1543,33 +1654,7 @@ export default function SchedulerDashboard() {
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-col gap-3 rounded-2xl border border-cyan-400/20 bg-black/30 px-4 py-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-200/70">SARDI</p>
-          <h1 className="text-lg font-bold leading-tight">교대 스케줄 대시보드</h1>
-        </div>
-        <div className="grid w-full grid-cols-3 gap-2 md:flex md:w-auto md:flex-wrap">
-          <Link
-            href="/settings/shifts"
-            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm">
-            근무 설정
-          </Link>
-          <Link
-            href="/settings/account"
-            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm">
-            계정 설정
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="inline-flex items-center justify-center rounded-lg border border-rose-300/40 px-2 py-2 text-rose-200 md:px-3 md:py-1"
-            aria-label="로그아웃"
-            title="로그아웃">
-            <LogoutIcon />
-            <span className="sr-only">로그아웃</span>
-          </button>
-        </div>
-      </header>
+      <TopNavbar current="dashboard" title="교대 스케줄 대시보드" onLogout={() => void handleLogout()} />
 
       {statusMessage ? (
         <div className="rounded-xl border border-cyan-300/30 bg-cyan-950/20 px-3 py-2 text-xs text-cyan-100">
@@ -1578,17 +1663,13 @@ export default function SchedulerDashboard() {
       ) : null}
 
       <section
-        className={`grid gap-4 rounded-2xl border border-teal-300/20 bg-black/30 p-3 md:min-h-[calc(100dvh-11.5rem)] ${
+        className={`grid gap-4 p-0 md:min-h-[calc(100dvh-11.5rem)] ${
           isFilterColorOnly
             ? "md:grid-cols-[minmax(0,1fr)_84px] lg:grid-cols-[minmax(0,1fr)_90px] xl:grid-cols-[minmax(0,1fr)_96px]"
             : "md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]"
         }`}>
-        <div className="flex min-h-[70dvh] flex-col md:h-full md:min-h-0">
-          <div
-            className="min-h-[62dvh] flex-1 md:min-h-0"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}>
+        <div className="flex min-h-[100dvh] flex-col md:h-full md:min-h-0">
+          <div className="min-h-[calc(100dvh-12rem)] flex-1 md:min-h-0">
             <FullCalendar
               ref={calendarRef}
               plugins={[luxonPlugin, multiMonthPlugin, dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -1681,6 +1762,7 @@ export default function SchedulerDashboard() {
               }}
               dayCellClassNames={(arg) => getHolidayClasses(arg.date)}
               dayHeaderClassNames={(arg) => getHolidayClasses(arg.date)}
+              dayCellContent={renderDayCellContent}
               dayMaxEvents={3}
               views={{
                 multiMonthYear: {
@@ -1689,13 +1771,9 @@ export default function SchedulerDashboard() {
               }}
             />
           </div>
-          <p className="mt-2 text-[11px] text-cyan-100/70">
-            날짜 클릭 또는 터치/드래그 범위 선택으로 일반 스케줄 모달이 열리고, 기존 일정은 드래그/리사이즈로 시간
-            수정할 수 있습니다.
-          </p>
         </div>
 
-        <div className="space-y-3 rounded-xl border border-teal-200/15 bg-teal-950/15 p-3 md:max-h-full md:overflow-y-auto">
+        <div className="space-y-3 p-0 md:max-h-full md:overflow-y-auto">
           <div className={isFilterColorOnly ? "space-y-1" : "flex items-center justify-between gap-2"}>
             <h2 className={`${isFilterColorOnly ? "text-xs" : "text-sm"} font-semibold`}>라벨 필터</h2>
             <button
@@ -1797,7 +1875,6 @@ export default function SchedulerDashboard() {
                           />
                           <span className="min-w-0">
                             <span className="block truncate text-teal-50">{label.name}</span>
-                            <span className="block text-[11px] text-teal-100/65">{label.color}</span>
                           </span>
                         </label>
                         <button
@@ -2129,10 +2206,10 @@ export default function SchedulerDashboard() {
 
       {selectedSchedule ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/65 p-3"
           onClick={closeScheduleDetail}>
           <div
-            className="w-full max-w-md rounded-2xl border border-cyan-200/30 bg-[#031718] p-4"
+            className="max-h-[96dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-cyan-200/30 bg-[#031718] p-4 md:max-h-[92dvh]"
             onClick={(event) => event.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-cyan-50">일정 상세</h2>
@@ -2240,16 +2317,15 @@ export default function SchedulerDashboard() {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-cyan-100/15 bg-cyan-950/20 px-3 py-2">
-                  <p className="mb-1 text-[11px] text-cyan-100/60">라벨 (읽기 전용)</p>
-                  <p className="flex items-center gap-2 text-cyan-50">
-                    <span
-                      className="inline-block h-3 w-3 rounded-full"
-                      style={{ backgroundColor: normalizeHexColor(selectedSchedule.schedule_label_color) || "#0EA5E9" }}
-                    />
-                    <span>{selectedSchedule.schedule_label_name}</span>
-                    <span className="text-xs text-cyan-100/60">{selectedSchedule.schedule_label_color}</span>
-                  </p>
+                <div className="space-y-1">
+                  <p className="text-[11px] text-cyan-100/60">라벨</p>
+                  <DropdownSelect
+                    options={labelOptions}
+                    value={detailForm.schedule_label_id}
+                    onChange={(nextValue) => setDetailForm((prev) => ({ ...prev, schedule_label_id: nextValue }))}
+                    tone="cyan"
+                    placeholder="라벨 선택"
+                  />
                 </div>
 
                 <div className="rounded-lg border border-cyan-100/15 bg-cyan-950/20 px-3 py-2">
@@ -2279,7 +2355,7 @@ export default function SchedulerDashboard() {
                     ) : repeatGroupItems.length === 0 ? (
                       <p className="text-[11px] text-cyan-100/70">반복 일정이 없습니다.</p>
                     ) : (
-                      <div className="space-y-1">
+                      <div className="max-h-[30dvh] space-y-1 overflow-y-auto pr-1">
                         {visibleRepeatGroupItems.map((groupItem) => {
                           const active = groupItem.id === selectedSchedule.id;
                           const timeText = groupItem.all_day
@@ -2369,7 +2445,6 @@ export default function SchedulerDashboard() {
                         }}
                       />
                       <span>{selectedSchedule.schedule_label_name}</span>
-                      <span className="text-xs text-cyan-100/60">{selectedSchedule.schedule_label_color}</span>
                     </p>
                   </div>
 
@@ -2400,7 +2475,7 @@ export default function SchedulerDashboard() {
                       ) : repeatGroupItems.length === 0 ? (
                         <p className="text-[11px] text-cyan-100/70">반복 일정이 없습니다.</p>
                       ) : (
-                        <div className="space-y-1">
+                        <div className="max-h-[30dvh] space-y-1 overflow-y-auto pr-1">
                           {visibleRepeatGroupItems.map((groupItem) => {
                             const active = groupItem.id === selectedSchedule.id;
                             const timeText = groupItem.all_day

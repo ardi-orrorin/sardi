@@ -2,6 +2,7 @@
 
 import { FetchBuilder } from "@/app/_commons/utils/func";
 import { NumberDropdown } from "@/app/_services/components/number-dropdown";
+import { TopNavbar } from "@/app/_services/components/top-navbar";
 import {
   DndContext,
   DragEndEvent,
@@ -13,7 +14,6 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -96,16 +96,6 @@ function TrashIcon({ className = "h-4 w-4" }: IconProps) {
       <path d="M8 6V4h8v2" />
       <path d="M19 6l-1 14H6L5 6" />
       <path d="M10 11v6M14 11v6" />
-    </svg>
-  );
-}
-
-function LogoutIcon({ className = "h-4 w-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <path d="M16 17l5-5-5-5" />
-      <path d="M21 12H9" />
     </svg>
   );
 }
@@ -600,42 +590,7 @@ export default function ShiftSettings() {
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-col gap-3 rounded-2xl border border-cyan-400/20 bg-black/30 px-4 py-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-200/70">SARDI</p>
-          <h1 className="text-lg font-bold leading-tight">근무 타입/패턴 설정</h1>
-        </div>
-        <div className="grid w-full grid-cols-4 gap-2 md:flex md:w-auto md:flex-wrap">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm"
-          >
-            스케줄
-          </Link>
-          <Link
-            href="/settings/labels"
-            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm"
-          >
-            라벨 설정
-          </Link>
-          <Link
-            href="/settings/account"
-            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm"
-          >
-            계정 설정
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            aria-label="로그아웃"
-            title="로그아웃"
-            className="inline-flex items-center justify-center rounded-lg border border-rose-300/40 px-2 py-2 text-rose-200 md:px-3 md:py-1"
-          >
-            <LogoutIcon className="h-4 w-4" />
-            <span className="sr-only">로그아웃</span>
-          </button>
-        </div>
-      </header>
+      <TopNavbar current="shifts" title="근무 타입/패턴 설정" onLogout={() => void handleLogout()} />
 
       {statusMessage ? (
         <div className="rounded-xl border border-cyan-300/30 bg-cyan-950/20 px-3 py-2 text-xs text-cyan-100">
@@ -643,7 +598,7 @@ export default function ShiftSettings() {
         </div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 p-0 md:min-h-[calc(100dvh-11.5rem)] md:grid-cols-2">
         <form onSubmit={handleSubmitShiftType} className="space-y-3 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
           <h2 className="text-sm font-semibold">{editingShiftTypeId ? "근무 타입 수정" : "근무 타입 등록"}</h2>
           <input
