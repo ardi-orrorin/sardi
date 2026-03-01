@@ -2,29 +2,15 @@
 
 import { FetchBuilder } from "@/app/_commons/utils/func";
 import PasskeyRegister from "@/app/passkey/passkey-register";
-import Link from "next/link";
+import { TopNavbar } from "@/app/_services/components/top-navbar";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-
-type IconProps = {
-  className?: string;
-};
 
 type ChangePasswordResponse = {
   success?: boolean;
   message?: string;
   error?: string;
 };
-
-function LogoutIcon({ className = "h-4 w-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <path d="M16 17l5-5-5-5" />
-      <path d="M21 12H9" />
-    </svg>
-  );
-}
 
 export default function AccountSettings() {
   const router = useRouter();
@@ -102,36 +88,7 @@ export default function AccountSettings() {
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-col gap-3 rounded-2xl border border-cyan-400/20 bg-black/30 px-4 py-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-200/70">SARDI</p>
-          <h1 className="text-lg font-bold leading-tight">계정 설정</h1>
-        </div>
-        <div className="grid w-full grid-cols-3 gap-2 md:flex md:w-auto md:flex-wrap">
-          <Link
-            href="/settings/shifts"
-            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm"
-          >
-            근무 설정
-          </Link>
-          <Link
-            href="/settings/account"
-            className="inline-flex items-center justify-center rounded-lg border border-cyan-300/40 px-2 py-2 text-[13px] font-semibold text-cyan-100 md:px-3 md:py-1 md:text-sm"
-          >
-            계정 설정
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="inline-flex items-center justify-center rounded-lg border border-rose-300/40 px-2 py-2 text-rose-200 md:px-3 md:py-1"
-            aria-label="로그아웃"
-            title="로그아웃"
-          >
-            <LogoutIcon />
-            <span className="sr-only">로그아웃</span>
-          </button>
-        </div>
-      </header>
+      <TopNavbar current="account" title="계정 설정" onLogout={() => void handleLogout()} />
 
       {errorMessage ? (
         <div className="rounded-xl border border-rose-300/40 bg-rose-950/20 px-3 py-2 text-xs text-rose-100">{errorMessage}</div>
@@ -140,7 +97,7 @@ export default function AccountSettings() {
         <div className="rounded-xl border border-cyan-300/30 bg-cyan-950/20 px-3 py-2 text-xs text-cyan-100">{statusMessage}</div>
       ) : null}
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-4 p-0 md:min-h-[calc(100dvh-11.5rem)] lg:grid-cols-2">
         <form onSubmit={handleChangePassword} className="space-y-3 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
           <h2 className="text-sm font-semibold">비밀번호 변경</h2>
           <div className="space-y-1">
