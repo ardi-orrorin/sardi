@@ -3,6 +3,7 @@
 :root {
   --bg-main: #080809;
   --text-main: #efeff1;
+  --time-picker-input-color: #ffffff;
   --app-gradient: radial-gradient(circle at top, #1a1a1c 0%, #101012 46%, #080809 100%);
   --surface-strong: rgba(18, 18, 20, 0.86);
   --surface-soft: rgba(12, 12, 14, 0.72);
@@ -12,6 +13,7 @@
 html.theme-light {
   --bg-main: #eff7fb;
   --text-main: #142838;
+  --time-picker-input-color: #142838;
   --app-gradient: radial-gradient(circle at top, #ffffff 0%, #edf6f9 45%, #e2edf4 100%);
   --surface-strong: rgba(255, 255, 255, 0.88);
   --surface-soft: rgba(255, 255, 255, 0.76);
@@ -773,4 +775,71 @@ html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid 
     padding: 0.44rem 0.56rem;
     font-size: 0.8rem;
   }
+}
+
+/* MUI Time Picker (모바일 다이얼로그) 테마 보정 */
+html.theme-dark .MuiDialog-root .MuiPaper-root,
+html.theme-dark .MuiPickersPopper-root .MuiPaper-root {
+  background: rgba(18, 18, 20, 0.98) !important;
+  color: #f4f4f5 !important;
+  border: 1px solid rgba(113, 113, 122, 0.45) !important;
+}
+
+html.theme-dark .MuiDialog-root .MuiTypography-root,
+html.theme-dark .MuiDialog-root .MuiClockNumber-root,
+html.theme-dark .MuiDialog-root .MuiIconButton-root,
+html.theme-dark .MuiDialog-root .MuiButton-root,
+html.theme-dark .MuiDialog-root .MuiSvgIcon-root {
+  color: #f4f4f5 !important;
+}
+
+html.theme-dark .MuiDialog-root .MuiClock-pin,
+html.theme-dark .MuiDialog-root .MuiClockPointer-root,
+html.theme-dark .MuiDialog-root .MuiClockPointer-thumb {
+  background: #a1a1aa !important;
+  border-color: #a1a1aa !important;
+}
+
+html.theme-light .MuiDialog-root .MuiPaper-root,
+html.theme-light .MuiPickersPopper-root .MuiPaper-root {
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #142838 !important;
+  border: 1px solid rgba(13, 110, 123, 0.22) !important;
+}
+
+html.theme-light .MuiDialog-root .MuiTypography-root,
+html.theme-light .MuiDialog-root .MuiClockNumber-root,
+html.theme-light .MuiDialog-root .MuiIconButton-root,
+html.theme-light .MuiDialog-root .MuiButton-root,
+html.theme-light .MuiDialog-root .MuiSvgIcon-root {
+  color: #142838 !important;
+}
+
+/* 근무 타입 시간 입력 필드(다크) 텍스트 흰색 강제 */
+html.theme-dark .shift-time-picker-field .MuiInputBase-input {
+  color: var(--time-picker-input-color) !important;
+  -webkit-text-fill-color: var(--time-picker-input-color) !important;
+  opacity: 1 !important;
+  caret-color: var(--time-picker-input-color) !important;
+}
+
+html.theme-dark .shift-time-picker-field .MuiInputLabel-root {
+  color: var(--time-picker-input-color) !important;
+  opacity: 0.86 !important;
+}
+
+html.theme-dark .shift-time-picker-field .MuiSvgIcon-root,
+html.theme-dark .shift-time-picker-field .MuiInputBase-root {
+  color: var(--time-picker-input-color) !important;
+}
+
+/* MUI X v8 접근성 필드 구조(섹션 기반) 색상 강제 */
+html.theme-dark .shift-time-picker-field .MuiPickersInputBase-root,
+html.theme-dark .shift-time-picker-field .MuiPickersInputBase-sectionsContainer,
+html.theme-dark .shift-time-picker-field .MuiPickersSectionList-root,
+html.theme-dark .shift-time-picker-field .MuiPickersSectionList-section,
+html.theme-dark .shift-time-picker-field .MuiPickersSectionList-sectionContent {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
 }
