@@ -14,8 +14,15 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
+import dayjs, { Dayjs } from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useRouter } from "next/navigation";
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ButtonHTMLAttributes, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+dayjs.extend(customParseFormat);
 
 type ShiftType = {
   id: string;
@@ -64,6 +71,91 @@ const normalizeStepOrder = (steps: PatternStepDraft[]) =>
     step_order: index
   }));
 
+const parseHmsToSeconds = (value: string, allow24Hour: boolean) => {
+  const trimmed = value.trim();
+  const parts = trimmed.split(":");
+  if (parts.length !== 2 && parts.length !== 3) {
+    return null;
+  }
+
+  const hours = Number(parts[0]);
+  const minutes = Number(parts[1]);
+  const seconds = parts.length === 3 ? Number(parts[2]) : 0;
+
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || !Number.isInteger(seconds)) {
+    return null;
+  }
+
+  if (allow24Hour && hours === 24 && minutes === 0 && seconds === 0) {
+    return 24 * 60 * 60;
+  }
+
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || seconds < 0 || seconds > 59) {
+    return null;
+  }
+
+  return hours * 3600 + minutes * 60 + seconds;
+};
+
+const secondsToHms = (value: number) => {
+  const safe = Math.max(0, Math.min(value, 24 * 60 * 60));
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60);
+  const seconds = safe % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+};
+
+const deriveEndTime = (startOffset: string, duration: string) => {
+  const startSeconds = parseHmsToSeconds(startOffset, false);
+  const durationSeconds = parseHmsToSeconds(duration, true);
+  if (startSeconds === null || durationSeconds === null) {
+    return "10:00:00";
+  }
+
+  const endSeconds = startSeconds + durationSeconds;
+  if (endSeconds <= startSeconds || endSeconds > 24 * 60 * 60) {
+    return "10:00:00";
+  }
+
+  return secondsToHms(endSeconds);
+};
+
+const toPickerTime = (value: string): Dayjs | null => {
+  const parsed = dayjs(value.trim(), ["HH:mm:ss", "HH:mm"], true);
+  return parsed.isValid() ? parsed : null;
+};
+
+const pickerFieldSx = {
+  "& .MuiInputBase-root": {
+    minHeight: "44px",
+    borderRadius: "0.5rem",
+    color: "var(--time-picker-input-color) !important",
+    backgroundColor: "var(--surface-strong)"
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "var(--border-main)"
+  },
+  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "var(--border-main)"
+  },
+  "& .MuiSvgIcon-root": {
+    color: "var(--time-picker-input-color) !important",
+    opacity: 0.78
+  },
+  "& .MuiInputBase-input": {
+    color: "var(--time-picker-input-color) !important",
+    WebkitTextFillColor: "var(--time-picker-input-color) !important"
+  },
+  "& .MuiInputLabel-root": {
+    color: "var(--time-picker-input-color) !important",
+    opacity: 0.78
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "var(--time-picker-input-color) !important",
+    opacity: 0.95
+  }
+} as const;
+
 type StepDropdownOption = {
   value: string;
   label: string;
@@ -74,6 +166,7 @@ type StepDropdownProps = {
   value: string;
   onChange: (nextValue: string) => void;
   placeholder: string;
+  className?: string;
 };
 
 type IconProps = {
@@ -100,7 +193,7 @@ function TrashIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
-function StepDropdown({ options, value, onChange, placeholder }: StepDropdownProps) {
+function StepDropdown({ options, value, onChange, placeholder, className = "" }: StepDropdownProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
   const selected = useMemo(() => options.find((item) => item.value === value), [options, value]);
@@ -124,12 +217,11 @@ function StepDropdown({ options, value, onChange, placeholder }: StepDropdownPro
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className={`relative min-w-0 ${className}`.trim()}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between rounded-lg border border-teal-100/20 bg-teal-950/30 px-2 py-2 text-sm text-teal-50"
-      >
+        className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-teal-100/20 bg-teal-950/30 px-2 py-2 text-sm text-teal-50">
         <span className="truncate">{selected?.label ?? placeholder}</span>
         <span className="ml-2 text-[11px] text-teal-100/70">{open ? "▲" : "▼"}</span>
       </button>
@@ -146,8 +238,7 @@ function StepDropdown({ options, value, onChange, placeholder }: StepDropdownPro
               }}
               className={`w-full rounded-md px-2 py-2 text-left text-sm text-teal-50 hover:bg-black/25 ${
                 item.value === value ? "bg-black/30" : ""
-              }`}
-            >
+              }`}>
               {item.label}
             </button>
           ))}
@@ -165,6 +256,54 @@ type SortablePatternStepItemProps = {
   onUpdateStep: (localId: string, key: "day_offset" | "schedule_type_id", value: string) => void;
   onRemoveStep: (localId: string) => void;
 };
+
+function PatternStepItem({
+  step,
+  index,
+  shiftTypes,
+  canDelete,
+  onUpdateStep,
+  onRemoveStep,
+  dragHandleProps
+}: SortablePatternStepItemProps & {
+  dragHandleProps?: ButtonHTMLAttributes<HTMLButtonElement>;
+}) {
+  return (
+    <div className="grid grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-2 rounded-lg border border-teal-100/15 bg-black/20 p-2 md:grid-cols-[44px_minmax(172px,196px)_minmax(0,1fr)_auto]">
+      <button
+        type="button"
+        {...dragHandleProps}
+        className="min-h-[44px] rounded-md border border-teal-200/30 px-2 py-2 text-[11px] text-teal-100/80 touch-none">
+        #{index + 1}
+      </button>
+      <NumberDropdown
+        value={step.day_offset}
+        min={0}
+        max={365}
+        tone="teal"
+        className="min-w-0 md:min-w-[172px]"
+        onChange={(nextValue) => onUpdateStep(step.local_id, "day_offset", String(nextValue))}
+      />
+      <StepDropdown
+        options={shiftTypes.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))}
+        value={step.schedule_type_id}
+        onChange={(nextValue) => onUpdateStep(step.local_id, "schedule_type_id", nextValue)}
+        placeholder="근무타입 선택"
+        className="col-span-3 md:col-span-1"
+      />
+      <button
+        type="button"
+        disabled={!canDelete}
+        onClick={() => onRemoveStep(step.local_id)}
+        className="col-start-3 row-start-1 min-h-[44px] rounded-lg border border-rose-300/40 px-2 py-2 text-xs text-rose-200 disabled:opacity-40 md:col-start-auto md:row-start-auto">
+        삭제
+      </button>
+    </div>
+  );
+}
 
 function SortablePatternStepItem({
   step,
@@ -185,44 +324,16 @@ function SortablePatternStepItem({
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="grid grid-cols-[44px_minmax(172px,196px)_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-teal-100/15 bg-black/20 p-2"
-    >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        className="rounded-md border border-teal-200/30 px-2 py-2 text-[11px] text-teal-100/80 touch-none"
-      >
-        #{index + 1}
-      </button>
-      <NumberDropdown
-        value={step.day_offset}
-        min={0}
-        max={365}
-        tone="teal"
-        className="min-w-[172px]"
-        onChange={(nextValue) => onUpdateStep(step.local_id, "day_offset", String(nextValue))}
+    <div ref={setNodeRef} style={style}>
+      <PatternStepItem
+        step={step}
+        index={index}
+        shiftTypes={shiftTypes}
+        canDelete={canDelete}
+        onUpdateStep={onUpdateStep}
+        onRemoveStep={onRemoveStep}
+        dragHandleProps={{ ...attributes, ...listeners }}
       />
-      <StepDropdown
-        options={shiftTypes.map((item) => ({
-          value: item.id,
-          label: item.name
-        }))}
-        value={step.schedule_type_id}
-        onChange={(nextValue) => onUpdateStep(step.local_id, "schedule_type_id", nextValue)}
-        placeholder="근무타입 선택"
-      />
-      <button
-        type="button"
-        disabled={!canDelete}
-        onClick={() => onRemoveStep(step.local_id)}
-        className="rounded-lg border border-rose-300/40 px-2 py-2 text-xs text-rose-200 disabled:opacity-40"
-      >
-        삭제
-      </button>
     </div>
   );
 }
@@ -231,14 +342,16 @@ export default function ShiftSettings() {
   const router = useRouter();
 
   const [statusMessage, setStatusMessage] = useState("");
+  const [statusKind, setStatusKind] = useState<"info" | "success" | "error">("info");
   const [loading, setLoading] = useState(false);
+  const [dndReady, setDndReady] = useState(false);
   const [shiftTypes, setShiftTypes] = useState<ShiftType[]>([]);
   const [patterns, setPatterns] = useState<Pattern[]>([]);
 
   const [shiftTypeForm, setShiftTypeForm] = useState({
     name: "",
-    start_offset: "09:00:00",
-    duration: "08:00:00",
+    start_time: "09:00:00",
+    end_time: "10:00:00",
     all_day: false
   });
   const [editingShiftTypeId, setEditingShiftTypeId] = useState<string | null>(null);
@@ -311,11 +424,13 @@ export default function ShiftSettings() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     setStatusMessage("");
+    setStatusKind("info");
 
     try {
       await Promise.all([loadShiftTypes(), loadPatterns()]);
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : "초기 로드 실패");
+      setStatusKind("error");
     } finally {
       setLoading(false);
     }
@@ -325,6 +440,10 @@ export default function ShiftSettings() {
     void loadAll();
   }, [loadAll]);
 
+  useEffect(() => {
+    setDndReady(true);
+  }, []);
+
   const handleLogout = async () => {
     await FetchBuilder.post().url("/api/auth/logout").execute();
     router.replace("/login");
@@ -333,8 +452,8 @@ export default function ShiftSettings() {
   const resetShiftTypeForm = useCallback(() => {
     setShiftTypeForm({
       name: "",
-      start_offset: "09:00:00",
-      duration: "08:00:00",
+      start_time: "09:00:00",
+      end_time: "10:00:00",
       all_day: false
     });
     setEditingShiftTypeId(null);
@@ -344,16 +463,42 @@ export default function ShiftSettings() {
     event.preventDefault();
 
     setStatusMessage("");
+    setStatusKind("info");
+
+    const startSeconds = parseHmsToSeconds(shiftTypeForm.start_time, false);
+    const endSeconds = parseHmsToSeconds(shiftTypeForm.end_time, true);
+    if (startSeconds === null || endSeconds === null) {
+      setStatusMessage("시작/끝은 HH:MM 또는 HH:MM:SS 형식으로 입력하세요.");
+      setStatusKind("error");
+      return;
+    }
+    if (endSeconds <= startSeconds) {
+      setStatusMessage("끝 시간은 시작 시간보다 커야 합니다.");
+      setStatusKind("error");
+      return;
+    }
+    if (endSeconds > 24 * 60 * 60) {
+      setStatusMessage("끝 시간은 24:00:00을 넘길 수 없습니다.");
+      setStatusKind("error");
+      return;
+    }
+
+    const requestBody = {
+      name: shiftTypeForm.name,
+      start_offset: secondsToHms(startSeconds),
+      duration: secondsToHms(endSeconds - startSeconds),
+      all_day: shiftTypeForm.all_day
+    };
 
     try {
       const payload = editingShiftTypeId
         ? await FetchBuilder.patch()
             .url(`/api/sardi/shift-types/${encodeURIComponent(editingShiftTypeId)}`)
-            .body(shiftTypeForm)
+            .body(requestBody)
             .execute<{ id?: string; error?: string }>()
         : await FetchBuilder.post()
             .url("/api/sardi/shift-types")
-            .body(shiftTypeForm)
+            .body(requestBody)
             .execute<{ id?: string; error?: string }>();
 
       if (!payload.id) {
@@ -363,8 +508,10 @@ export default function ShiftSettings() {
       resetShiftTypeForm();
       await Promise.all([loadShiftTypes(), loadPatterns()]);
       setStatusMessage(editingShiftTypeId ? "근무 타입을 수정했습니다." : "근무 타입이 등록되었습니다.");
+      setStatusKind("success");
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : "근무 타입 저장 실패");
+      setStatusKind("error");
     }
   };
 
@@ -372,8 +519,8 @@ export default function ShiftSettings() {
     setEditingShiftTypeId(item.id);
     setShiftTypeForm({
       name: item.name,
-      start_offset: item.start_offset,
-      duration: item.duration,
+      start_time: item.start_offset,
+      end_time: deriveEndTime(item.start_offset, item.duration),
       all_day: item.all_day
     });
   };
@@ -384,6 +531,7 @@ export default function ShiftSettings() {
     }
 
     setStatusMessage("");
+    setStatusKind("info");
 
     try {
       const payload = await FetchBuilder.delete()
@@ -400,8 +548,10 @@ export default function ShiftSettings() {
 
       await Promise.all([loadShiftTypes(), loadPatterns()]);
       setStatusMessage("근무 타입을 삭제했습니다.");
+      setStatusKind("success");
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : "근무 타입 삭제 실패");
+      setStatusKind("error");
     }
   };
 
@@ -473,23 +623,20 @@ export default function ShiftSettings() {
     });
   };
 
-  const resetPatternForm = useCallback(
-    (defaultShiftTypeId: string) => {
-      setPatternForm({
-        name: "",
-        steps: [
-          {
-            local_id: createStepLocalId(),
-            step_order: 0,
-            day_offset: 0,
-            schedule_type_id: defaultShiftTypeId
-          }
-        ]
-      });
-      setEditingPatternId(null);
-    },
-    []
-  );
+  const resetPatternForm = useCallback((defaultShiftTypeId: string) => {
+    setPatternForm({
+      name: "",
+      steps: [
+        {
+          local_id: createStepLocalId(),
+          step_order: 0,
+          day_offset: 0,
+          schedule_type_id: defaultShiftTypeId
+        }
+      ]
+    });
+    setEditingPatternId(null);
+  }, []);
 
   const startEditPattern = (pattern: Pattern) => {
     const sortedSteps = pattern.steps.slice().sort((a, b) => a.step_order - b.step_order);
@@ -513,6 +660,7 @@ export default function ShiftSettings() {
     }
 
     setStatusMessage("");
+    setStatusKind("info");
 
     try {
       const payload = await FetchBuilder.delete()
@@ -529,8 +677,10 @@ export default function ShiftSettings() {
 
       await loadPatterns();
       setStatusMessage("패턴을 삭제했습니다.");
+      setStatusKind("success");
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : "패턴 삭제 실패");
+      setStatusKind("error");
     }
   };
 
@@ -539,15 +689,18 @@ export default function ShiftSettings() {
 
     if (!patternForm.name.trim()) {
       setStatusMessage("패턴 이름을 입력하세요.");
+      setStatusKind("error");
       return;
     }
 
     if (patternForm.steps.some((step) => !step.schedule_type_id)) {
       setStatusMessage("스텝마다 근무 타입을 선택하세요.");
+      setStatusKind("error");
       return;
     }
 
     setStatusMessage("");
+    setStatusKind("info");
 
     try {
       const payload = editingPatternId
@@ -583,8 +736,10 @@ export default function ShiftSettings() {
       resetPatternForm(shiftTypes[0]?.id ?? "");
       await loadPatterns();
       setStatusMessage(editingPatternId ? "패턴을 수정했습니다." : "패턴이 등록되었습니다.");
+      setStatusKind("success");
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : "패턴 저장 실패");
+      setStatusKind("error");
     }
   };
 
@@ -593,37 +748,96 @@ export default function ShiftSettings() {
       <TopNavbar current="shifts" title="근무 타입/패턴 설정" onLogout={() => void handleLogout()} />
 
       {statusMessage ? (
-        <div className="rounded-xl border border-cyan-300/30 bg-cyan-950/20 px-3 py-2 text-xs text-cyan-100">
+        <div
+          className={`rounded-xl px-3 py-2 text-xs ${
+            statusKind === "error"
+              ? "border border-rose-400/40 bg-rose-950/20 text-rose-200"
+              : statusKind === "success"
+                ? "border border-emerald-300/30 bg-emerald-950/20 text-emerald-100"
+                : "border border-cyan-300/30 bg-cyan-950/20 text-cyan-100"
+          }`}>
           {statusMessage}
         </div>
       ) : null}
 
       <section className="grid gap-4 p-0 md:min-h-[calc(100dvh-11.5rem)] md:grid-cols-2">
-        <form onSubmit={handleSubmitShiftType} className="space-y-3 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
+        <form
+          onSubmit={handleSubmitShiftType}
+          className="space-y-4 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
           <h2 className="text-sm font-semibold">{editingShiftTypeId ? "근무 타입 수정" : "근무 타입 등록"}</h2>
-          <input
-            value={shiftTypeForm.name}
-            onChange={(event) => setShiftTypeForm((prev) => ({ ...prev, name: event.target.value }))}
-            placeholder="예: 주간"
-            className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
-            required
-          />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1.5">
+            <label
+              htmlFor="shift-type-name"
+              className="text-xs font-medium"
+              style={{ color: "var(--time-picker-input-color)", opacity: 0.78 }}
+            >
+              근무 타입 이름
+            </label>
             <input
-              value={shiftTypeForm.start_offset}
-              onChange={(event) => setShiftTypeForm((prev) => ({ ...prev, start_offset: event.target.value }))}
-              placeholder="09:00:00"
-              className="rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
-              required
-            />
-            <input
-              value={shiftTypeForm.duration}
-              onChange={(event) => setShiftTypeForm((prev) => ({ ...prev, duration: event.target.value }))}
-              placeholder="08:00:00"
-              className="rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
+              id="shift-type-name"
+              value={shiftTypeForm.name}
+              onChange={(event) => setShiftTypeForm((prev) => ({ ...prev, name: event.target.value }))}
+              placeholder="예: 주간"
+              className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
               required
             />
           </div>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="space-y-1.5">
+                <p className="text-[11px]" style={{ color: "var(--time-picker-input-color)", opacity: 0.78 }}>
+                  시작 시간
+                </p>
+                <MobileTimePicker
+                  ampm={false}
+                  views={["hours", "minutes"]}
+                  format="HH:mm"
+                  value={toPickerTime(shiftTypeForm.start_time)}
+                  onChange={(nextValue) => {
+                    if (!nextValue || !nextValue.isValid()) {
+                      return;
+                    }
+                    setShiftTypeForm((prev) => ({ ...prev, start_time: nextValue.format("HH:mm:ss") }));
+                  }}
+                  slotProps={{
+                    textField: {
+                      className: "shift-time-picker-field",
+                      required: true,
+                      fullWidth: true,
+                      size: "small",
+                      sx: pickerFieldSx
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[11px]" style={{ color: "var(--time-picker-input-color)", opacity: 0.78 }}>
+                  종료 시간
+                </p>
+                <MobileTimePicker
+                  ampm={false}
+                  views={["hours", "minutes"]}
+                  format="HH:mm"
+                  value={toPickerTime(shiftTypeForm.end_time)}
+                  onChange={(nextValue) => {
+                    if (!nextValue || !nextValue.isValid()) {
+                      return;
+                    }
+                    setShiftTypeForm((prev) => ({ ...prev, end_time: nextValue.format("HH:mm:ss") }));
+                  }}
+                  slotProps={{
+                    textField: {
+                      className: "shift-time-picker-field",
+                      required: true,
+                      fullWidth: true,
+                      size: "small",
+                      sx: pickerFieldSx
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </LocalizationProvider>
           <label className="flex items-center gap-2 text-xs text-teal-100/80">
             <input
               type="checkbox"
@@ -640,8 +854,7 @@ export default function ShiftSettings() {
               type="button"
               onClick={resetShiftTypeForm}
               className="w-full rounded-lg border border-teal-300/40 px-3 py-2 text-sm text-teal-100"
-              disabled={!editingShiftTypeId}
-            >
+              disabled={!editingShiftTypeId}>
               편집 취소
             </button>
           </div>
@@ -654,7 +867,7 @@ export default function ShiftSettings() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-semibold">{item.name}</span>
                     <span className="text-teal-100/60">
-                      {item.start_offset} / {item.duration}
+                      {item.start_offset} ~ {deriveEndTime(item.start_offset, item.duration)}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -663,8 +876,7 @@ export default function ShiftSettings() {
                       onClick={() => startEditShiftType(item)}
                       aria-label="근무 타입 수정"
                       title="근무 타입 수정"
-                      className="inline-flex min-h-[44px] items-center justify-center rounded border border-teal-300/40 px-2 py-2 text-teal-100"
-                    >
+                      className="inline-flex min-h-[44px] items-center justify-center rounded border border-teal-300/40 px-2 py-2 text-teal-100">
                       <EditIcon />
                     </button>
                     <button
@@ -672,8 +884,7 @@ export default function ShiftSettings() {
                       onClick={() => void handleDeleteShiftType(item.id)}
                       aria-label="근무 타입 삭제"
                       title="근무 타입 삭제"
-                      className="inline-flex min-h-[44px] items-center justify-center rounded border border-rose-300/40 px-2 py-2 text-rose-200"
-                    >
+                      className="inline-flex min-h-[44px] items-center justify-center rounded border border-rose-300/40 px-2 py-2 text-rose-200">
                       <TrashIcon />
                     </button>
                   </div>
@@ -683,7 +894,9 @@ export default function ShiftSettings() {
           </div>
         </form>
 
-        <form onSubmit={handleSubmitPattern} className="space-y-3 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
+        <form
+          onSubmit={handleSubmitPattern}
+          className="space-y-3 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
           <h2 className="text-sm font-semibold">{editingPatternId ? "패턴 + 스텝 수정" : "패턴 + 스텝 등록"}</h2>
           <input
             value={patternForm.name}
@@ -698,35 +911,58 @@ export default function ShiftSettings() {
 
           <div className="space-y-2">
             <p className="text-[11px] text-teal-100/70">좌측 핸들(`#번호`)을 드래그해서 스텝 순서를 변경하세요.</p>
-            <div className="grid grid-cols-[44px_minmax(172px,196px)_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-teal-100/15 bg-teal-950/20 px-2 py-2 text-[11px] font-semibold text-teal-100/80">
+            <div className="grid grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-2 rounded-lg border border-teal-100/15 bg-teal-950/20 px-2 py-2 text-[11px] font-semibold text-teal-100/80 md:hidden">
+              <span className="text-center">스텝</span>
+              <span>offset_day</span>
+              <span className="text-center">삭제</span>
+              <span className="col-span-3 pt-1">근무 타입</span>
+            </div>
+            <div className="hidden grid-cols-[44px_minmax(172px,196px)_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-teal-100/15 bg-teal-950/20 px-2 py-2 text-[11px] font-semibold text-teal-100/80 md:grid">
               <span className="text-center">스텝</span>
               <span>offset_day</span>
               <span>근무 타입</span>
               <span className="text-center">삭제</span>
             </div>
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={patternForm.steps.map((item) => item.local_id)} strategy={verticalListSortingStrategy}>
-                <div className="space-y-2">
-                  {patternForm.steps.map((step, index) => (
-                    <SortablePatternStepItem
-                      key={step.local_id}
-                      step={step}
-                      index={index}
-                      shiftTypes={shiftTypes}
-                      canDelete={patternForm.steps.length > 1}
-                      onUpdateStep={updatePatternStep}
-                      onRemoveStep={removePatternStep}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
+            {dndReady ? (
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext
+                  items={patternForm.steps.map((item) => item.local_id)}
+                  strategy={verticalListSortingStrategy}>
+                  <div className="space-y-2">
+                    {patternForm.steps.map((step, index) => (
+                      <SortablePatternStepItem
+                        key={step.local_id}
+                        step={step}
+                        index={index}
+                        shiftTypes={shiftTypes}
+                        canDelete={patternForm.steps.length > 1}
+                        onUpdateStep={updatePatternStep}
+                        onRemoveStep={removePatternStep}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            ) : (
+              <div className="space-y-2">
+                {patternForm.steps.map((step, index) => (
+                  <PatternStepItem
+                    key={step.local_id}
+                    step={step}
+                    index={index}
+                    shiftTypes={shiftTypes}
+                    canDelete={patternForm.steps.length > 1}
+                    onUpdateStep={updatePatternStep}
+                    onRemoveStep={removePatternStep}
+                  />
+                ))}
+              </div>
+            )}
 
             <button
               type="button"
               onClick={appendPatternStep}
-              className="w-full rounded-lg border border-teal-300/40 px-3 py-2 text-xs text-teal-100"
-            >
+              className="w-full rounded-lg border border-teal-300/40 px-3 py-2 text-xs text-teal-100">
               스텝 추가
             </button>
           </div>
@@ -739,8 +975,7 @@ export default function ShiftSettings() {
               type="button"
               onClick={() => resetPatternForm(shiftTypes[0]?.id ?? "")}
               className="w-full rounded-lg border border-teal-300/40 px-3 py-2 text-sm text-teal-100"
-              disabled={!editingPatternId}
-            >
+              disabled={!editingPatternId}>
               편집 취소
             </button>
           </div>
@@ -766,8 +1001,7 @@ export default function ShiftSettings() {
                       onClick={() => startEditPattern(pattern)}
                       aria-label="패턴 수정"
                       title="패턴 수정"
-                      className="inline-flex min-h-[44px] items-center justify-center rounded border border-teal-300/40 px-2 py-2 text-teal-100"
-                    >
+                      className="inline-flex min-h-[44px] items-center justify-center rounded border border-teal-300/40 px-2 py-2 text-teal-100">
                       <EditIcon />
                     </button>
                     <button
@@ -775,8 +1009,7 @@ export default function ShiftSettings() {
                       onClick={() => void handleDeletePattern(pattern.id)}
                       aria-label="패턴 삭제"
                       title="패턴 삭제"
-                      className="inline-flex min-h-[44px] items-center justify-center rounded border border-rose-300/40 px-2 py-2 text-rose-200"
-                    >
+                      className="inline-flex min-h-[44px] items-center justify-center rounded border border-rose-300/40 px-2 py-2 text-rose-200">
                       <TrashIcon />
                     </button>
                   </div>
