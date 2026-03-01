@@ -361,6 +361,23 @@ html.theme-light .bg-cyan-300 {
   box-shadow: inset 0 0 0 1px rgba(255, 159, 163, 0.34);
 }
 
+.fc .fc-col-header-cell.fc-user-holiday .fc-col-header-cell-cushion {
+  color: #ff9fa3 !important;
+  font-weight: 700;
+}
+
+.fc .fc-daygrid-day.fc-user-holiday .fc-daygrid-day-number,
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday .fc-daygrid-day-number {
+  color: #ff9fa3 !important;
+  font-weight: 700;
+}
+
+.fc .fc-daygrid-day.fc-user-holiday,
+.fc .fc-timegrid-col.fc-user-holiday {
+  background: rgba(127, 29, 29, 0.16) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 159, 163, 0.34);
+}
+
 .fc .fc-daygrid-day.fc-day-today {
   background: rgba(148, 163, 184, 0.2);
 }
@@ -410,6 +427,56 @@ html.theme-light .bg-cyan-300 {
 }
 
 .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
+  background: rgba(101, 30, 30, 0.42) !important;
+}
+
+.fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday {
+  background: rgba(101, 30, 30, 0.42) !important;
+}
+
+.calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion,
+.calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion,
+.calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-holiday-red .fc-col-header-cell-cushion,
+.calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+.calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
+.calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number,
+.calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+.calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
+.calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number {
+  color: #e4e4e7 !important;
+  font-weight: 600;
+}
+
+.calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sun,
+.calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sat,
+.calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-holiday-red,
+.calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-day-sun,
+.calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-day-sat,
+.calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-holiday-red {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun,
+.calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat,
+.calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
+  background: rgba(20, 20, 23, 0.88) !important;
+}
+
+.calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-user-holiday .fc-col-header-cell-cushion,
+.calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-user-holiday .fc-daygrid-day-number,
+.calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday .fc-daygrid-day-number {
+  color: #ff9fa3 !important;
+  font-weight: 700;
+}
+
+.calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-user-holiday,
+.calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-user-holiday {
+  background: rgba(127, 29, 29, 0.16) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 159, 163, 0.34) !important;
+}
+
+.calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday {
   background: rgba(101, 30, 30, 0.42) !important;
 }
 
@@ -569,7 +636,24 @@ html.theme-light .fc .fc-timegrid-col.fc-holiday-red {
   box-shadow: inset 0 0 0 1px rgba(225, 29, 72, 0.3);
 }
 
+html.theme-light .fc .fc-col-header-cell.fc-user-holiday .fc-col-header-cell-cushion,
+html.theme-light .fc .fc-daygrid-day.fc-user-holiday .fc-daygrid-day-number,
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday .fc-daygrid-day-number {
+  color: #e11d48 !important;
+  font-weight: 700;
+}
+
+html.theme-light .fc .fc-daygrid-day.fc-user-holiday,
+html.theme-light .fc .fc-timegrid-col.fc-user-holiday {
+  background: rgba(244, 63, 94, 0.2) !important;
+  box-shadow: inset 0 0 0 1px rgba(225, 29, 72, 0.3);
+}
+
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
+  background: rgba(251, 113, 133, 0.3) !important;
+}
+
+html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday {
   background: rgba(251, 113, 133, 0.3) !important;
 }
 
@@ -579,6 +663,60 @@ html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun {
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat {
   background: rgba(96, 165, 250, 0.3) !important;
+}
+
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-holiday-red .fc-col-header-cell-cushion,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number {
+  color: #214757 !important;
+  font-weight: 600;
+}
+
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number {
+  color: #1e293b !important;
+}
+
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sun,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sat,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-holiday-red,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-day-sun,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-day-sat,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-holiday-red {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
+  background: rgba(247, 252, 253, 0.95) !important;
+}
+
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-user-holiday .fc-col-header-cell-cushion,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-user-holiday .fc-daygrid-day-number,
+html.theme-light
+  .calendar-weekend-holiday-theme-off
+  .fc
+  .fc-multimonth-daygrid
+  .fc-daygrid-day.fc-user-holiday
+  .fc-daygrid-day-number {
+  color: #e11d48 !important;
+  font-weight: 700;
+}
+
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-user-holiday,
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-user-holiday {
+  background: rgba(244, 63, 94, 0.2) !important;
+  box-shadow: inset 0 0 0 1px rgba(225, 29, 72, 0.3) !important;
+}
+
+html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday {
+  background: rgba(251, 113, 133, 0.3) !important;
 }
 
 @media (min-width: 768px) {
