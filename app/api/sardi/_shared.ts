@@ -3,6 +3,8 @@ import { FetchBuilder, getBackendBaseUrl } from "@/app/_commons/utils/func";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
+type ProxyMethod = "GET" | "POST" | "PATCH" | "DELETE";
+
 export async function readAuthToken() {
   const cookieStore = await cookies();
   return cookieStore.get(AUTH_COOKIE_NAME)?.value;
@@ -18,7 +20,7 @@ export function makeBackendUrl(pathname: string) {
 
 export async function proxyRequest(
   req: NextRequest,
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: ProxyMethod,
   pathname: string,
   token: string,
   body?: unknown
@@ -47,4 +49,41 @@ export async function proxyRequest(
   >;
 
   return NextResponse.json(payload, { status: response.status });
+}
+
+export async function readJsonBody(req: NextRequest) {
+  return req.json().catch(() => null);
+}
+
+type HandleProxyOptions = {
+  requireBody?: boolean;
+  body?: unknown;
+  logLabel: string;
+};
+
+export async function handleSardiProxy(
+  req: NextRequest,
+  method: ProxyMethod,
+  pathname: string,
+  options: HandleProxyOptions
+) {
+  const token = await readAuthToken();
+  if (!token) {
+    return unauthorizedResponse();
+  }
+
+  let body = options.body;
+  if (options.requireBody && body === undefined) {
+    body = await readJsonBody(req);
+    if (!body) {
+      return NextResponse.json({ error: "invalid request" }, { status: 400 });
+    }
+  }
+
+  try {
+    return await proxyRequest(req, method, pathname, token, body);
+  } catch (error) {
+    console.error(`${options.logLabel} error:`, error);
+    return NextResponse.json({ error: "request failed" }, { status: 500 });
+  }
 }

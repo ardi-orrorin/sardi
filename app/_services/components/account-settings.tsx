@@ -1,9 +1,9 @@
 "use client";
 
 import { FetchBuilder } from "@/app/_commons/utils/func";
+import { useAuthActions } from "@/app/_services/hooks/use-auth-actions";
 import PasskeyRegister from "@/app/passkey/passkey-register";
 import { TopNavbar } from "@/app/_services/components/top-navbar";
-import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 type ChangePasswordResponse = {
@@ -13,7 +13,7 @@ type ChangePasswordResponse = {
 };
 
 export default function AccountSettings() {
-  const router = useRouter();
+  const { logout } = useAuthActions();
 
   const [form, setForm] = useState({
     current_password: "",
@@ -23,11 +23,6 @@ export default function AccountSettings() {
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
-  const handleLogout = async () => {
-    await FetchBuilder.post().url("/api/auth/logout").execute();
-    router.replace("/login");
-  };
 
   const handleChangePassword = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -76,8 +71,7 @@ export default function AccountSettings() {
         confirm_password: ""
       });
 
-      await FetchBuilder.post().url("/api/auth/logout").execute();
-      router.replace("/login?error=password_changed");
+      await logout("/login?error=password_changed");
     } catch (error) {
       const message = error instanceof Error ? error.message : "비밀번호 변경 실패";
       setErrorMessage(message);
@@ -88,7 +82,7 @@ export default function AccountSettings() {
 
   return (
     <div className="space-y-4">
-      <TopNavbar current="account" title="계정 설정" onLogout={() => void handleLogout()} />
+      <TopNavbar current="account" title="계정 설정" onLogout={() => void logout()} />
 
       {errorMessage ? (
         <div className="rounded-xl border border-rose-300/40 bg-rose-950/20 px-3 py-2 text-xs text-rose-100">{errorMessage}</div>

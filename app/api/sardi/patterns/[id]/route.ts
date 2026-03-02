@@ -1,46 +1,22 @@
 import { NextRequest } from "next/server";
 
-import { proxyRequest, readAuthToken, unauthorizedResponse } from "../../_shared";
+import { handleSardiProxy } from "../../_shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const token = await readAuthToken();
-  if (!token) {
-    return unauthorizedResponse();
-  }
-
-  const body = await req.json().catch(() => null);
-  if (!body) {
-    return Response.json({ error: "invalid request" }, { status: 400 });
-  }
-
   const { id } = await params;
-  const path = `/api/v1/sardi/private/patterns/${encodeURIComponent(id)}`;
-
-  try {
-    return await proxyRequest(req, "PATCH", path, token, body);
-  } catch (error) {
-    console.error("patterns PATCH error:", error);
-    return Response.json({ error: "request failed" }, { status: 500 });
-  }
+  return handleSardiProxy(req, "PATCH", `/api/v1/sardi/private/patterns/${encodeURIComponent(id)}`, {
+    requireBody: true,
+    logLabel: "patterns PATCH"
+  });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const token = await readAuthToken();
-  if (!token) {
-    return unauthorizedResponse();
-  }
-
   const { id } = await params;
-  const path = `/api/v1/sardi/private/patterns/${encodeURIComponent(id)}`;
-
-  try {
-    return await proxyRequest(req, "DELETE", path, token);
-  } catch (error) {
-    console.error("patterns DELETE error:", error);
-    return Response.json({ error: "request failed" }, { status: 500 });
-  }
+  return handleSardiProxy(req, "DELETE", `/api/v1/sardi/private/patterns/${encodeURIComponent(id)}`, {
+    logLabel: "patterns DELETE"
+  });
 }
