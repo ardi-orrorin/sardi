@@ -59,6 +59,7 @@ export default function AccountSettings() {
   const [calendarStatus, setCalendarStatus] = useState("");
   const [calendarError, setCalendarError] = useState("");
   const [calendarExports, setCalendarExports] = useState<CalendarExportLinkResponse[]>([]);
+  const [publicBaseUrl, setPublicBaseUrl] = useState("");
   const [calendarExportLabelInput, setCalendarExportLabelInput] = useState("");
   const [exportLoading, setExportLoading] = useState(false);
   const [exportsLoading, setExportsLoading] = useState(false);
@@ -158,6 +159,19 @@ export default function AccountSettings() {
   useEffect(() => {
     void loadCalendarExports();
   }, [loadCalendarExports]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setPublicBaseUrl(window.location.origin);
+    }
+  }, []);
+
+  const buildPublicUrl = (path: string) => {
+    if (!publicBaseUrl) {
+      return "";
+    }
+    return `${publicBaseUrl.replace(/\/$/, "")}${path}`;
+  };
 
   const handleGenerateCalendarExport = async () => {
     setCalendarError("");
@@ -349,70 +363,72 @@ export default function AccountSettings() {
       <TopNavbar current="account" title="계정 설정" onLogout={() => void logout()} />
 
       {errorMessage ? (
-        <div className="rounded-xl border border-rose-300/40 bg-rose-950/20 px-3 py-2 text-xs text-rose-100">{errorMessage}</div>
+        <div className="rounded-xl border border-blue-300/45 bg-blue-950/20 px-3 py-2 text-xs text-blue-100">{errorMessage}</div>
       ) : null}
       {statusMessage ? (
-        <div className="rounded-xl border border-cyan-300/30 bg-cyan-950/20 px-3 py-2 text-xs text-cyan-100">{statusMessage}</div>
+        <div className="rounded-xl border border-blue-300/45 bg-blue-950/20 px-3 py-2 text-xs text-blue-100">{statusMessage}</div>
       ) : null}
 
-      <section className="grid items-start gap-4 p-0 lg:grid-cols-2">
-        <form onSubmit={handleChangePassword} className="space-y-3 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
-          <h2 className="text-sm font-semibold">비밀번호 변경</h2>
-          <div className="space-y-1">
-            <label htmlFor="current-password" className="text-xs text-teal-100/80">
-              현재 비밀번호
-            </label>
-            <input
-              id="current-password"
-              type="password"
-              autoComplete="current-password"
-              value={form.current_password}
-              onChange={(event) => setForm((prev) => ({ ...prev, current_password: event.target.value }))}
-              className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
-              required
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="new-password" className="text-xs text-teal-100/80">
-              새 비밀번호
-            </label>
-            <input
-              id="new-password"
-              type="password"
-              autoComplete="new-password"
-              value={form.new_password}
-              onChange={(event) => setForm((prev) => ({ ...prev, new_password: event.target.value }))}
-              className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
-              minLength={8}
-              required
-            />
-            <p className="text-[11px] text-teal-100/70">최소 8자 이상 입력하세요.</p>
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="confirm-password" className="text-xs text-teal-100/80">
-              새 비밀번호 확인
-            </label>
-            <input
-              id="confirm-password"
-              type="password"
-              autoComplete="new-password"
-              value={form.confirm_password}
-              onChange={(event) => setForm((prev) => ({ ...prev, confirm_password: event.target.value }))}
-              className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
-              minLength={8}
-              required
-            />
+      <section className="grid items-stretch gap-4 p-0 lg:grid-cols-2">
+        <form onSubmit={handleChangePassword} className="flex h-full flex-col rounded-2xl border border-teal-300/20 bg-black/30 p-4">
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold">비밀번호 변경</h2>
+            <div className="space-y-1">
+              <label htmlFor="current-password" className="text-xs text-teal-100/80">
+                현재 비밀번호
+              </label>
+              <input
+                id="current-password"
+                type="password"
+                autoComplete="current-password"
+                value={form.current_password}
+                onChange={(event) => setForm((prev) => ({ ...prev, current_password: event.target.value }))}
+                className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="new-password" className="text-xs text-teal-100/80">
+                새 비밀번호
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                autoComplete="new-password"
+                value={form.new_password}
+                onChange={(event) => setForm((prev) => ({ ...prev, new_password: event.target.value }))}
+                className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
+                minLength={8}
+                required
+              />
+              <p className="text-[11px] text-teal-100/70">최소 8자 이상 입력하세요.</p>
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="confirm-password" className="text-xs text-teal-100/80">
+                새 비밀번호 확인
+              </label>
+              <input
+                id="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                value={form.confirm_password}
+                onChange={(event) => setForm((prev) => ({ ...prev, confirm_password: event.target.value }))}
+                className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm"
+                minLength={8}
+                required
+              />
+            </div>
           </div>
           <button
             type="submit"
             disabled={saving}
-            className="w-full rounded-lg bg-teal-300 px-3 py-2 text-sm font-bold text-teal-950 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-auto w-full rounded-lg bg-teal-300 px-3 py-2 text-sm font-bold text-teal-950 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "변경 중..." : "비밀번호 변경"}
           </button>
         </form>
 
-        <div className="space-y-3 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
+        <div className="flex h-full flex-col space-y-3 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
           <div>
             <h2 className="text-sm font-semibold">패스키 설정</h2>
             <p className="text-xs text-teal-100/70">패스키 등록, 별칭 수정, 삭제를 관리할 수 있습니다.</p>
@@ -428,6 +444,49 @@ export default function AccountSettings() {
             <p className="text-xs text-teal-100/70">
               애플 캘린더 등 CalDAV 클라이언트 연결용 URL과 ICS 구독 URL을 생성합니다.
             </p>
+          </div>
+
+          <div className="space-y-2 rounded-xl border border-teal-100/15 bg-black/20 p-3 text-xs text-teal-100/80">
+            <p className="text-sm font-semibold text-teal-100">계정 로그인 방식 (권장)</p>
+            <p>서버: {publicBaseUrl || "(현재 도메인)"}</p>
+            <p>사용자명: SARDI 로그인 이메일</p>
+            <p>비밀번호: SARDI 계정 비밀번호</p>
+            <div className="space-y-1">
+              <p className="font-semibold text-teal-100">자동 탐색 URL</p>
+              <p className="break-all">{buildPublicUrl("/.well-known/caldav")}</p>
+              <button
+                type="button"
+                onClick={() => void copyText(buildPublicUrl("/.well-known/caldav"))}
+                className="rounded-md border border-teal-100/40 px-2 py-1 text-[11px] text-teal-100"
+                disabled={!publicBaseUrl}
+              >
+                자동 탐색 URL 복사
+              </button>
+            </div>
+            <div className="space-y-1">
+              <p className="font-semibold text-teal-100">수동 CalDAV URL</p>
+              <p className="break-all">{buildPublicUrl("/api/v1/sardi/public/caldav/calendar")}</p>
+              <button
+                type="button"
+                onClick={() => void copyText(buildPublicUrl("/api/v1/sardi/public/caldav/calendar"))}
+                className="rounded-md border border-teal-100/40 px-2 py-1 text-[11px] text-teal-100"
+                disabled={!publicBaseUrl}
+              >
+                수동 CalDAV URL 복사
+              </button>
+            </div>
+            <div className="space-y-1">
+              <p className="font-semibold text-teal-100">계정 인증 ICS URL</p>
+              <p className="break-all">{buildPublicUrl("/api/v1/sardi/public/ics")}</p>
+              <button
+                type="button"
+                onClick={() => void copyText(buildPublicUrl("/api/v1/sardi/public/ics"))}
+                className="rounded-md border border-teal-100/40 px-2 py-1 text-[11px] text-teal-100"
+                disabled={!publicBaseUrl}
+              >
+                ICS URL 복사
+              </button>
+            </div>
           </div>
 
           <div className="space-y-1">
@@ -611,10 +670,10 @@ export default function AccountSettings() {
       </section>
 
       {calendarError ? (
-        <div className="rounded-xl border border-rose-300/40 bg-rose-950/20 px-3 py-2 text-xs text-rose-100">{calendarError}</div>
+        <div className="rounded-xl border border-blue-300/45 bg-blue-950/20 px-3 py-2 text-xs text-blue-100">{calendarError}</div>
       ) : null}
       {calendarStatus ? (
-        <div className="rounded-xl border border-cyan-300/30 bg-cyan-950/20 px-3 py-2 text-xs text-cyan-100">{calendarStatus}</div>
+        <div className="rounded-xl border border-blue-300/45 bg-blue-950/20 px-3 py-2 text-xs text-blue-100">{calendarStatus}</div>
       ) : null}
     </div>
   );

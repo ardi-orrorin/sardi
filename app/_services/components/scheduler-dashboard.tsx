@@ -28,8 +28,7 @@ import type {
   ScheduleGroupDetailResponse,
   ScheduleItem,
   ScheduleLabel,
-  ScheduleListResponse,
-  ShiftType
+  ScheduleListResponse
 } from "@/app/_services/scheduler/types";
 import {
   DEFAULT_LABEL_COLOR,
@@ -190,6 +189,8 @@ export default function SchedulerDashboard() {
   const [scheduleSearchKeyword, setScheduleSearchKeyword] = useState("");
 
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
+  const [searchResultItems, setSearchResultItems] = useState<ScheduleItem[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [publicHolidayDateSet, setPublicHolidayDateSet] = useState<Set<string>>(new Set());
   const [publicHolidayNameMap, setPublicHolidayNameMap] = useState<Record<string, string>>({});
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
@@ -222,7 +223,6 @@ export default function SchedulerDashboard() {
   const [registerMode, setRegisterMode] = useState<"manual" | "pattern">("manual");
 
   const [manualForm, setManualForm] = useState({
-    schedule_type_id: "",
     schedule_label_id: "",
     title: "",
     start_date: toDateInput(dayjs()),
@@ -257,11 +257,21 @@ export default function SchedulerDashboard() {
       start: range.start,
       end: range.end
     });
-    if (scheduleSearchKeyword) {
-      params.set("q", scheduleSearchKeyword);
-    }
     return `/api/sardi/schedules?${params.toString()}`;
-  }, [range.end, range.start, scheduleSearchKeyword]);
+  }, [range.end, range.start]);
+
+  const globalSearchApi = useMemo(() => {
+    if (!scheduleSearchKeyword) {
+      return "";
+    }
+
+    const params = new URLSearchParams({
+      start: `1970-01-01T00:00:00${SEOUL_OFFSET}`,
+      end: `2100-01-01T00:00:00${SEOUL_OFFSET}`,
+      q: scheduleSearchKeyword
+    });
+    return `/api/sardi/schedules?${params.toString()}`;
+  }, [scheduleSearchKeyword]);
 
   const visibleScheduleItems = useMemo(() => {
     const selectedSet = new Set(selectedLabelIds);
@@ -271,7 +281,7 @@ export default function SchedulerDashboard() {
 
   const filteredEvents = useMemo<CalendarEvent[]>(() => {
     return visibleScheduleItems.map((item) => {
-      const scheduleTitle = item.title?.trim() || item.schedule_type_name;
+      const scheduleTitle = item.title?.trim() || item.schedule_type_name || "일정";
       const color = normalizeHexColor(item.schedule_label_color) || seedColor(scheduleTitle);
       return {
         id: item.id,
@@ -364,20 +374,6 @@ export default function SchedulerDashboard() {
     []
   );
 
-  const loadShiftTypes = useCallback(async () => {
-    const payload = await FetchBuilder.get().url("/api/sardi/shift-types").execute<ShiftType[] | { error?: string }>();
-    if (!Array.isArray(payload)) {
-      throw new Error(payload.error ?? "근무 타입 조회 실패");
-    }
-
-    setManualForm((prev) => {
-      if (prev.schedule_type_id || payload.length === 0) {
-        return prev;
-      }
-      return { ...prev, schedule_type_id: payload[0].id };
-    });
-  }, []);
-
   const loadPatterns = useCallback(async () => {
     const payload = await FetchBuilder.get().url("/api/sardi/patterns").execute<Pattern[] | { error?: string }>();
     if (!Array.isArray(payload)) {
@@ -441,19 +437,42 @@ export default function SchedulerDashboard() {
     setScheduleItems(payload.items);
   }, [listScheduleApi]);
 
+  const loadGlobalSearchSchedules = useCallback(async () => {
+    if (!globalSearchApi) {
+      setSearchResultItems([]);
+      setSearchLoading(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const payload = await FetchBuilder.get().url(globalSearchApi).execute<ScheduleListResponse | { error?: string }>();
+      if (!("items" in payload)) {
+        throw new Error(payload.error ?? "전체 일정 검색 실패");
+      }
+      setSearchResultItems(payload.items);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "전체 일정 검색 실패";
+      setStatusMessage(message);
+      setSearchResultItems([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [globalSearchApi]);
+
   const loadBaseData = useCallback(async () => {
     setLoading(true);
     setStatusMessage("");
 
     try {
-      await Promise.all([loadShiftTypes(), loadPatterns(), loadLabels()]);
+      await Promise.all([loadPatterns(), loadLabels()]);
     } catch (error) {
       const message = error instanceof Error ? error.message : "초기 데이터 로드 실패";
       setStatusMessage(message);
     } finally {
       setLoading(false);
     }
-  }, [loadLabels, loadPatterns, loadShiftTypes]);
+  }, [loadLabels, loadPatterns]);
 
   useEffect(() => {
     void loadBaseData();
@@ -462,6 +481,10 @@ export default function SchedulerDashboard() {
   useEffect(() => {
     void loadSchedules();
   }, [loadSchedules]);
+
+  useEffect(() => {
+    void loadGlobalSearchSchedules();
+  }, [loadGlobalSearchSchedules]);
 
   useEffect(() => {
     let cancelled = false;
@@ -704,7 +727,6 @@ export default function SchedulerDashboard() {
       const payload = await FetchBuilder.post()
         .url("/api/sardi/schedules")
         .body({
-          schedule_type_id: manualForm.schedule_type_id,
           schedule_label_id: manualForm.schedule_label_id,
           title: manualForm.title.trim(),
           start_ts: startTs,
@@ -718,16 +740,12 @@ export default function SchedulerDashboard() {
         throw new Error(payload.error ?? "일반 일정 생성 실패");
       }
     },
-    [manualForm.schedule_label_id, manualForm.schedule_type_id, manualForm.title]
+    [manualForm.schedule_label_id, manualForm.title]
   );
 
   const handleCreateManualSchedule = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!manualForm.schedule_type_id) {
-      setStatusMessage("근무 타입 템플릿이 없어 등록할 수 없습니다.");
-      return;
-    }
     if (!manualForm.schedule_label_id) {
       setStatusMessage("라벨을 선택하세요.");
       return;
@@ -1106,6 +1124,19 @@ export default function SchedulerDashboard() {
     [loadRepeatGroupSchedules]
   );
 
+  const handleSelectSearchResult = useCallback(
+    (item: ScheduleItem) => {
+      openScheduleDetailItem(item);
+      const calendarApi = calendarRef.current?.getApi();
+      if (!calendarApi) {
+        return;
+      }
+
+      calendarApi.gotoDate(dayjs(item.start_ts).tz(SEOUL_TZ).toDate());
+    },
+    [openScheduleDetailItem]
+  );
+
   const closeScheduleDetail = () => {
     closeConfirmDialog(false);
     setSelectedSchedule(null);
@@ -1473,6 +1504,45 @@ export default function SchedulerDashboard() {
               ) : null}
             </div>
           </div>
+
+          {scheduleSearchKeyword ? (
+            <div className="space-y-2 rounded-lg border border-cyan-300/20 bg-cyan-950/10 p-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-cyan-100/80">전체 일정 검색 결과</p>
+                <span className="text-[11px] text-cyan-100/70">
+                  {searchLoading ? "검색 중..." : `${searchResultItems.length}건`}
+                </span>
+              </div>
+
+              {searchLoading ? (
+                <p className="text-xs text-cyan-100/70">검색 중입니다...</p>
+              ) : searchResultItems.length === 0 ? (
+                <p className="text-xs text-cyan-100/70">검색 결과가 없습니다.</p>
+              ) : (
+                <div className="max-h-56 space-y-1 overflow-y-auto">
+                  {searchResultItems.map((item) => {
+                    const scheduleTitle = item.title?.trim() || item.schedule_type_name || "일정";
+                    const labelColor = normalizeHexColor(item.schedule_label_color) || DEFAULT_LABEL_COLOR;
+                    const startText = dayjs(item.start_ts).tz(SEOUL_TZ).format("YYYY-MM-DD HH:mm");
+
+                    return (
+                      <button
+                        key={`search-${item.id}`}
+                        type="button"
+                        onClick={() => handleSelectSearchResult(item)}
+                        className="flex w-full items-center justify-between gap-2 rounded-md border border-cyan-300/20 bg-black/20 px-2 py-2 text-left hover:border-cyan-300/45">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: labelColor }} />
+                          <span className="truncate text-xs text-cyan-50">{scheduleTitle}</span>
+                        </span>
+                        <span className="shrink-0 text-[11px] text-cyan-100/65">{startText}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : null}
 
           <div className={isFilterColorOnly ? "space-y-1" : "flex items-center justify-between gap-2"}>
             <h2 className={`${isFilterColorOnly ? "text-xs" : "text-sm"} font-semibold`}>라벨 필터</h2>
@@ -2130,7 +2200,7 @@ export default function SchedulerDashboard() {
                                 active ? "border-teal-300/55 bg-teal-900/25" : "border-cyan-100/10 bg-black/15"
                               }`}>
                               <p className="truncate text-xs text-cyan-50">
-                                {groupItem.title?.trim() || groupItem.schedule_type_name}
+                                {groupItem.title?.trim() || groupItem.schedule_type_name || "일정"}
                               </p>
                               <p className="text-[11px] text-cyan-100/70">{timeText}</p>
                             </button>
@@ -2171,7 +2241,7 @@ export default function SchedulerDashboard() {
                   <div className="rounded-lg border border-cyan-100/15 bg-cyan-950/20 px-3 py-2">
                     <p className="text-[11px] text-cyan-100/60">제목</p>
                     <p className="text-cyan-50">
-                      {selectedSchedule.title?.trim() || selectedSchedule.schedule_type_name}
+                      {selectedSchedule.title?.trim() || selectedSchedule.schedule_type_name || "일정"}
                     </p>
                   </div>
 
@@ -2261,7 +2331,7 @@ export default function SchedulerDashboard() {
                                   active ? "border-teal-300/55 bg-teal-900/25" : "border-cyan-100/10 bg-black/15"
                                 }`}>
                                 <p className="truncate text-xs text-cyan-50">
-                                  {groupItem.title?.trim() || groupItem.schedule_type_name}
+                                  {groupItem.title?.trim() || groupItem.schedule_type_name || "일정"}
                                 </p>
                                 <p className="text-[11px] text-cyan-100/70">{timeText}</p>
                               </button>

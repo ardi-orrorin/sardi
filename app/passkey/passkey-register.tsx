@@ -177,7 +177,7 @@ export default function PasskeyRegister() {
   }, []);
 
   return (
-    <div className="space-y-4 rounded-2xl border border-teal-300/20 bg-black/30 p-4">
+    <div className="space-y-3">
       <button
         type="button"
         onClick={handleRegister}
@@ -187,48 +187,48 @@ export default function PasskeyRegister() {
         {loading ? "패스키 등록 중..." : "패스키 등록"}
       </button>
 
-      <div className="space-y-3">
-        {credentials.length === 0 ? (
-          <p className="text-xs text-teal-100/70">등록된 패스키가 없습니다.</p>
-        ) : (
-          credentials.map((item) => (
-            <div key={item.id} className="space-y-2 rounded-xl border border-teal-200/15 p-3">
-              <p className="text-xs text-teal-100/60">생성일: {item.created_at}</p>
-              <input
-                value={aliasMap[item.id] ?? ""}
-                onChange={(event) =>
-                  setAliasMap((prev) => ({
-                    ...prev,
-                    [item.id]: event.target.value
-                  }))
-                }
-                placeholder="별칭"
-                className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm focus:border-teal-300 focus:outline-none"
-              />
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSaveAlias(item.id)}
-                  disabled={savingId === item.id}
-                  className="flex-1 rounded-lg border border-teal-300/40 px-3 py-2 text-xs"
-                >
-                  저장
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(item.id)}
-                  disabled={savingId === item.id}
-                  className="flex-1 rounded-lg border border-rose-300/40 px-3 py-2 text-xs text-rose-200"
-                >
-                  삭제
-                </button>
-              </div>
+      {credentials.length === 0 ? (
+        <p className="text-xs text-teal-100/70">등록된 패스키가 없습니다.</p>
+      ) : (
+        credentials.map((item) => (
+          <div key={item.id} className="space-y-2 border-b border-teal-200/15 py-2 last:border-b-0">
+            <p className="text-xs text-teal-100/60">생성일: {item.created_at}</p>
+            <input
+              value={aliasMap[item.id] ?? ""}
+              onChange={(event) =>
+                setAliasMap((prev) => ({
+                  ...prev,
+                  [item.id]: event.target.value
+                }))
+              }
+              placeholder="별칭"
+              className="w-full rounded-lg border border-teal-100/20 bg-teal-950/30 px-3 py-2 text-sm focus:border-teal-300 focus:outline-none"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleSaveAlias(item.id)}
+                disabled={savingId === item.id}
+                className="flex-1 rounded-lg border border-teal-300/40 px-3 py-2 text-xs"
+              >
+                저장
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(item.id)}
+                disabled={savingId === item.id}
+                className="flex-1 rounded-lg border border-rose-300/40 px-3 py-2 text-xs text-rose-200"
+              >
+                삭제
+              </button>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+        ))
+      )}
 
-      {message ? <p className="text-xs text-teal-100/80">{message}</p> : null}
+      {message ? (
+        <div className="rounded-lg border border-blue-300/45 bg-blue-950/20 px-3 py-2 text-xs text-blue-100">{message}</div>
+      ) : null}
     </div>
   );
 }
