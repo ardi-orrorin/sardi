@@ -186,6 +186,8 @@ export default function SchedulerDashboard() {
       end: now.endOf("month").add(7, "day").toISOString()
     };
   });
+  const [scheduleSearchInput, setScheduleSearchInput] = useState("");
+  const [scheduleSearchKeyword, setScheduleSearchKeyword] = useState("");
 
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
   const [publicHolidayDateSet, setPublicHolidayDateSet] = useState<Set<string>>(new Set());
@@ -242,13 +244,24 @@ export default function SchedulerDashboard() {
     memo: ""
   });
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setScheduleSearchKeyword(scheduleSearchInput.trim());
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [scheduleSearchInput]);
+
   const listScheduleApi = useMemo(() => {
     const params = new URLSearchParams({
       start: range.start,
       end: range.end
     });
+    if (scheduleSearchKeyword) {
+      params.set("q", scheduleSearchKeyword);
+    }
     return `/api/sardi/schedules?${params.toString()}`;
-  }, [range.end, range.start]);
+  }, [range.end, range.start, scheduleSearchKeyword]);
 
   const visibleScheduleItems = useMemo(() => {
     const selectedSet = new Set(selectedLabelIds);
@@ -1439,6 +1452,28 @@ export default function SchedulerDashboard() {
         </div>
 
         <div className="space-y-3 p-0 md:max-h-full md:overflow-y-auto">
+          <div className="space-y-1 rounded-lg border border-teal-200/10 bg-black/20 p-2">
+            <label className="text-xs text-cyan-100/80">일정 검색 (제목/메모)</label>
+            <div className="flex items-center gap-1">
+              <input
+                value={scheduleSearchInput}
+                onChange={(event) => setScheduleSearchInput(event.target.value)}
+                className="h-8 w-full rounded-md border border-cyan-300/35 bg-cyan-950/20 px-2 text-xs text-cyan-50 placeholder:text-cyan-100/45"
+                placeholder="검색어 입력"
+              />
+              {scheduleSearchInput ? (
+                <button
+                  type="button"
+                  onClick={() => setScheduleSearchInput("")}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-cyan-300/35 text-cyan-100"
+                  aria-label="검색어 지우기"
+                  title="검색어 지우기">
+                  <CloseIcon />
+                </button>
+              ) : null}
+            </div>
+          </div>
+
           <div className={isFilterColorOnly ? "space-y-1" : "flex items-center justify-between gap-2"}>
             <h2 className={`${isFilterColorOnly ? "text-xs" : "text-sm"} font-semibold`}>라벨 필터</h2>
             <button
