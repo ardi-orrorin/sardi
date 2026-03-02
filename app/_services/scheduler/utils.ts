@@ -93,7 +93,7 @@ export const toScheduleDetailForm = (item: ScheduleItem): ScheduleDetailForm => 
   const safeEnd = end.isBefore(start) ? start : end;
 
   return {
-    title: item.title?.trim() || item.schedule_type_name,
+    title: item.title?.trim() || item.schedule_type_name || "일정",
     schedule_label_id: item.schedule_label_id,
     start_date: start.format("YYYY-MM-DD"),
     end_date: safeEnd.format("YYYY-MM-DD"),
@@ -219,7 +219,7 @@ export const buildUserHolidayDateSet = (items: ScheduleItem[]) => {
   const dates = new Set<string>();
 
   for (const item of items) {
-    const title = (item.title?.trim() || item.schedule_type_name || "").trim();
+    const title = (item.title?.trim() || item.schedule_type_name || "일정").trim();
     if (!title.includes("휴일")) {
       continue;
     }

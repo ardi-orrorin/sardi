@@ -24,8 +24,8 @@ export type ScheduleItem = {
   schedule_label_id: string;
   schedule_label_name: string;
   schedule_label_color: string;
-  schedule_type_id: string;
-  schedule_type_name: string;
+  schedule_type_id?: string | null;
+  schedule_type_name?: string | null;
   title?: string;
   memo?: unknown;
   start_ts: string;
