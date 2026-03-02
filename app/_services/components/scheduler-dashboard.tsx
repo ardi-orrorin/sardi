@@ -1,9 +1,56 @@
 "use client";
 
+import { dayjs, type Dayjs } from "@/app/_commons/utils/dayjs";
 import { FetchBuilder } from "@/app/_commons/utils/func";
+import {
+  CalendarDayIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CloseIcon,
+  EditIcon,
+  ListIcon,
+  PaletteIcon,
+  PlusIcon,
+  TrashIcon
+} from "@/app/_services/components/icons";
 import { MarkdownEditor, MarkdownViewer } from "@/app/_services/components/markdown-editor";
 import { NumberDropdown } from "@/app/_services/components/number-dropdown";
 import { TopNavbar } from "@/app/_services/components/top-navbar";
+import { useAuthActions } from "@/app/_services/hooks/use-auth-actions";
+import type {
+  CalendarEvent,
+  ConfirmDialogState,
+  Pattern,
+  PublicHolidayListResponse,
+  RepeatUnitValue,
+  ScheduleDetailForm,
+  ScheduleGroupDetailResponse,
+  ScheduleItem,
+  ScheduleLabel,
+  ScheduleListResponse,
+  ShiftType
+} from "@/app/_services/scheduler/types";
+import {
+  DEFAULT_LABEL_COLOR,
+  SEOUL_OFFSET,
+  SEOUL_TZ,
+  addByRepeatUnit,
+  buildUserHolidayDateSet,
+  collectYearMonthTargets,
+  extractMemoText,
+  extractRepeatSummary,
+  hasScheduleRangeChanged,
+  normalizeHexColor,
+  seedColor,
+  toDateInput,
+  toIsoWithOffset,
+  toScheduleDetailForm,
+  toSeoulDate,
+  toSeoulDateKeyFromDate,
+  toSeoulDateTime
+} from "@/app/_services/scheduler/utils";
+import { timePickerFieldSx, toTimePickerValue } from "@/app/_services/utils/time-picker";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import luxonPlugin from "@fullcalendar/luxon3";
@@ -13,385 +60,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
-import dayjs, { Dayjs } from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-type ShiftType = {
-  id: string;
-  name: string;
-  start_offset: string;
-  duration: string;
-  all_day: boolean;
-};
-
-type Pattern = {
-  id: string;
-  name: string;
-  cycle_days: number;
-};
-
-type ScheduleLabel = {
-  id: string;
-  name: string;
-  color: string;
-  create_at: string;
-};
-
-type ScheduleItem = {
-  id: string;
-  schedule_label_id: string;
-  schedule_label_name: string;
-  schedule_label_color: string;
-  schedule_type_id: string;
-  schedule_type_name: string;
-  title?: string;
-  memo?: unknown;
-  start_ts: string;
-  end_ts: string;
-  all_day: boolean;
-  group_id?: string;
-};
-
-type ScheduleDetailForm = {
-  title: string;
-  schedule_label_id: string;
-  start_date: string;
-  end_date: string;
-  start_time: string;
-  end_time: string;
-  all_day: boolean;
-  memo: string;
-};
-
-type RepeatUnitValue = "week" | "month" | "year";
-
-type ScheduleListResponse = {
-  items: ScheduleItem[];
-};
-
-type PublicHolidayItem = {
-  date_kind: string;
-  date_name: string;
-  is_holiday: boolean;
-  locdate: string;
-  seq?: number;
-};
-
-type PublicHolidayListResponse = {
-  year: number;
-  month: number;
-  total_count: number;
-  items: PublicHolidayItem[];
-};
-
-type ScheduleGroupDetailResponse = {
-  group_id: string;
-  items: ScheduleItem[];
-};
-
-type ConfirmDialogState = {
-  open: boolean;
-  title: string;
-  message: string;
-  confirmText: string;
-  tone: "warning" | "danger";
-};
-
-type CalendarEvent = {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  allDay: boolean;
-  backgroundColor: string;
-  borderColor: string;
-  textColor: string;
-  extendedProps: {
-    labelId: string;
-  };
-};
-
-dayjs.extend(customParseFormat);
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const SEOUL_TZ = "Asia/Seoul";
-const SEOUL_OFFSET = "+09:00";
-const DEFAULT_LABEL_COLOR = "#0EA5E9";
-
-const pickerFieldSx = {
-  "& .MuiInputBase-root": {
-    minHeight: "42px",
-    borderRadius: "0.5rem",
-    color: "var(--time-picker-input-color) !important",
-    backgroundColor: "var(--surface-strong)"
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "var(--border-main)"
-  },
-  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "var(--border-main)"
-  },
-  "& .MuiSvgIcon-root": {
-    color: "var(--time-picker-input-color) !important",
-    opacity: 0.78
-  },
-  "& .MuiInputBase-input": {
-    color: "var(--time-picker-input-color) !important",
-    WebkitTextFillColor: "var(--time-picker-input-color) !important"
-  },
-  "& .MuiInputLabel-root": {
-    color: "var(--time-picker-input-color) !important",
-    opacity: 0.78
-  },
-  "& .MuiInputLabel-root.Mui-focused": {
-    color: "var(--time-picker-input-color) !important",
-    opacity: 0.95
-  }
-} as const;
-
-const toPickerTime = (value: string): Dayjs | null => {
-  const parsed = dayjs(value.trim(), ["HH:mm:ss", "HH:mm"], true);
-  return parsed.isValid() ? parsed : null;
-};
-
-const seedColor = (seed: string) => {
-  let hash = 0;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash = seed.charCodeAt(index) + ((hash << 5) - hash);
-  }
-
-  const hue = Math.abs(hash) % 360;
-  return `hsl(${hue} 74% 46%)`;
-};
-
-const toDateInput = (value: dayjs.Dayjs) => value.tz(SEOUL_TZ).format("YYYY-MM-DD");
-const toIsoWithOffset = (date: string, time: string) => `${date}T${time}:00${SEOUL_OFFSET}`;
-const toSeoulDate = (value: string) => dayjs(value).tz(SEOUL_TZ).format("YYYY-MM-DD");
-const toSeoulDateTime = (value: string) => dayjs(value).tz(SEOUL_TZ).format("YYYY-MM-DDTHH:mm:ssZ");
-
-const normalizeHexColor = (value: string) => {
-  const trimmed = value.trim();
-  const prefixed = trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
-  const valid = /^#[0-9A-Fa-f]{6}$/.test(prefixed);
-  return valid ? prefixed.toUpperCase() : "";
-};
-
-const extractMemoTextFromObject = (memoObj: Record<string, unknown>) => {
-  const markdown = memoObj.markdown;
-  if (typeof markdown === "string") {
-    return markdown.trim();
-  }
-
-  const note = memoObj.note;
-  if (typeof note === "string") {
-    return note.trim();
-  }
-
-  const content = memoObj.content;
-  if (typeof content === "string") {
-    return content.trim();
-  }
-
-  const text = memoObj.text;
-  if (typeof text === "string") {
-    return text.trim();
-  }
-
-  return "";
-};
-
-const extractMemoText = (memo: unknown) => {
-  if (!memo) {
-    return "";
-  }
-
-  if (typeof memo === "string") {
-    const trimmed = memo.trim();
-    if (!trimmed) {
-      return "";
-    }
-
-    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-          return extractMemoTextFromObject(parsed as Record<string, unknown>);
-        }
-      } catch {
-        return trimmed;
-      }
-    }
-
-    return trimmed;
-  }
-
-  if (typeof memo === "object") {
-    if (Array.isArray(memo)) {
-      return "";
-    }
-    return extractMemoTextFromObject(memo as Record<string, unknown>);
-  }
-
-  return "";
-};
-
-const toScheduleDetailForm = (item: ScheduleItem): ScheduleDetailForm => {
-  const start = dayjs(item.start_ts).tz(SEOUL_TZ);
-  const rawEnd = dayjs(item.end_ts).tz(SEOUL_TZ);
-  const end = item.all_day ? rawEnd.subtract(1, "day") : rawEnd;
-  const safeEnd = end.isBefore(start) ? start : end;
-
-  return {
-    title: item.title?.trim() || item.schedule_type_name,
-    schedule_label_id: item.schedule_label_id,
-    start_date: start.format("YYYY-MM-DD"),
-    end_date: safeEnd.format("YYYY-MM-DD"),
-    start_time: start.format("HH:mm"),
-    end_time: safeEnd.format("HH:mm"),
-    all_day: item.all_day,
-    memo: extractMemoText(item.memo)
-  };
-};
-
-const addByRepeatUnit = (value: dayjs.Dayjs, repeatUnit: RepeatUnitValue, amount: number) =>
-  repeatUnit === "week"
-    ? value.add(amount, "week")
-    : repeatUnit === "month"
-      ? value.add(amount, "month")
-      : value.add(amount, "year");
-
-const repeatUnitToKorean = (repeatUnit: string) => {
-  if (repeatUnit === "week") {
-    return "주";
-  }
-  if (repeatUnit === "month") {
-    return "월";
-  }
-  if (repeatUnit === "year") {
-    return "년";
-  }
-  if (repeatUnit === "cycle") {
-    return "패턴 주기";
-  }
-  return "반복";
-};
-
-const extractRepeatSummary = (item: ScheduleItem, patterns: Pattern[]) => {
-  const memo = item.memo;
-  if (!memo || typeof memo !== "object" || Array.isArray(memo)) {
-    return item.group_id ? "반복 그룹 일정" : "단일 일정";
-  }
-
-  const source = (memo as Record<string, unknown>).source;
-  if (!source || typeof source !== "object" || Array.isArray(source)) {
-    return item.group_id ? "반복 그룹 일정" : "단일 일정";
-  }
-
-  const sourceMap = source as Record<string, unknown>;
-  const sourceType = typeof sourceMap.type === "string" ? sourceMap.type : "";
-
-  if (sourceType === "pattern_generate") {
-    const patternId = typeof sourceMap.pattern_id === "string" ? sourceMap.pattern_id : "";
-    const repeatUnit = sourceMap.repeat_unit;
-    const repeatCount = sourceMap.repeat_count;
-    const fallbackName = typeof sourceMap.pattern_name === "string" ? sourceMap.pattern_name : "";
-    const patternName = patterns.find((value) => value.id === patternId)?.name || fallbackName || "패턴";
-    const unitText = typeof repeatUnit === "string" ? `${repeatUnitToKorean(repeatUnit)} 단위` : "반복";
-    const countText = typeof repeatCount === "number" ? `${repeatCount}회` : "횟수 미상";
-    return `패턴 반복: ${patternName} · ${unitText} · ${countText}`;
-  }
-
-  if (sourceType === "manual_repeat") {
-    const repeatUnit = sourceMap.repeat_unit;
-    const repeatCount = sourceMap.repeat_count;
-    const repeatIndex = sourceMap.repeat_index;
-    const unitText = typeof repeatUnit === "string" ? `${repeatUnitToKorean(repeatUnit)} 단위` : "반복";
-    const countText = typeof repeatCount === "number" ? `${repeatCount}회` : "횟수 미상";
-    const indexText = typeof repeatIndex === "number" ? ` (${repeatIndex}/${repeatCount})` : "";
-    return `일반 반복 일정: ${unitText} · ${countText}${indexText}`;
-  }
-
-  return item.group_id ? "반복 그룹 일정" : "단일 일정";
-};
-
-const hasScheduleRangeChanged = (item: ScheduleItem, nextStartTs: string, nextEndTs: string, nextAllDay: boolean) => {
-  const startChanged = dayjs(item.start_ts).valueOf() !== dayjs(nextStartTs).valueOf();
-  const endChanged = dayjs(item.end_ts).valueOf() !== dayjs(nextEndTs).valueOf();
-  const allDayChanged = item.all_day !== nextAllDay;
-  return startChanged || endChanged || allDayChanged;
-};
-
-const toSeoulDateKeyFromDate = (date: Date) => {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: SEOUL_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  });
-  const parts = formatter.formatToParts(date);
-  const year = parts.find((item) => item.type === "year")?.value ?? "0000";
-  const month = parts.find((item) => item.type === "month")?.value ?? "01";
-  const day = parts.find((item) => item.type === "day")?.value ?? "01";
-  return `${year}-${month}-${day}`;
-};
-
-const collectYearMonthTargets = (startIso: string, endIso: string) => {
-  const startMonth = dayjs(startIso).tz(SEOUL_TZ).startOf("month");
-  const endMonth = dayjs(endIso).tz(SEOUL_TZ).subtract(1, "day").startOf("month");
-
-  if (!startMonth.isValid() || !endMonth.isValid()) {
-    return [] as Array<{ year: number; month: number }>;
-  }
-
-  const targets: Array<{ year: number; month: number }> = [];
-  let cursor = startMonth;
-  let guard = 0;
-
-  while ((cursor.isBefore(endMonth) || cursor.isSame(endMonth, "month")) && guard < 120) {
-    targets.push({
-      year: cursor.year(),
-      month: cursor.month() + 1
-    });
-    cursor = cursor.add(1, "month");
-    guard += 1;
-  }
-
-  return targets;
-};
-
-const buildUserHolidayDateSet = (items: ScheduleItem[]) => {
-  const dates = new Set<string>();
-
-  for (const item of items) {
-    const title = (item.title?.trim() || item.schedule_type_name || "").trim();
-    if (!title.includes("휴일")) {
-      continue;
-    }
-
-    const start = dayjs(item.start_ts).tz(SEOUL_TZ);
-    let end = dayjs(item.end_ts).tz(SEOUL_TZ);
-    end = item.all_day ? end.subtract(1, "day") : end.subtract(1, "second");
-
-    if (!end.isValid() || end.isBefore(start)) {
-      end = start;
-    }
-
-    let cursor = start.startOf("day");
-    const last = end.startOf("day");
-
-    while (cursor.isBefore(last) || cursor.isSame(last, "day")) {
-      dates.add(cursor.format("YYYY-MM-DD"));
-      cursor = cursor.add(1, "day");
-    }
-  }
-
-  return dates;
-};
 
 type DropdownOption = {
   value: string;
@@ -490,108 +159,8 @@ function DropdownSelect({ options, value, onChange, tone, placeholder }: Dropdow
   );
 }
 
-type IconProps = {
-  className?: string;
-};
-
-function PlusIcon({ className = "h-3.5 w-3.5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M12 5v14" />
-      <path d="M5 12h14" />
-    </svg>
-  );
-}
-
-function EditIcon({ className = "h-3.5 w-3.5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-    </svg>
-  );
-}
-
-function TrashIcon({ className = "h-3.5 w-3.5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M3 6h18" />
-      <path d="M8 6V4h8v2" />
-      <path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v6M14 11v6" />
-    </svg>
-  );
-}
-
-function CheckIcon({ className = "h-3.5 w-3.5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="m5 13 4 4L19 7" />
-    </svg>
-  );
-}
-
-function PaletteIcon({ className = "h-3.5 w-3.5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M12 3a9 9 0 0 0-9 9 8 8 0 0 0 8 8h2a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h5a4 4 0 0 0 4-4 9 9 0 0 0-9-9z" />
-      <circle cx="7.5" cy="10" r="1" />
-      <circle cx="10.5" cy="7.5" r="1" />
-      <circle cx="14" cy="7.5" r="1" />
-    </svg>
-  );
-}
-
-function ListIcon({ className = "h-3.5 w-3.5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M8 6h13" />
-      <path d="M8 12h13" />
-      <path d="M8 18h13" />
-      <circle cx="4" cy="6" r="1" />
-      <circle cx="4" cy="12" r="1" />
-      <circle cx="4" cy="18" r="1" />
-    </svg>
-  );
-}
-
-function CalendarDayIcon({ className = "h-3.5 w-3.5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" />
-      <path d="M9 14h6M9 18h4" />
-    </svg>
-  );
-}
-
-function CloseIcon({ className = "h-4 w-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon({ className = "h-3.5 w-3.5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-}
-
-function ChevronUpIcon({ className = "h-3.5 w-3.5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="m18 15-6-6-6 6" />
-    </svg>
-  );
-}
-
 export default function SchedulerDashboard() {
-  const router = useRouter();
+  const { logout } = useAuthActions();
   const calendarRef = useRef<FullCalendar>(null);
 
   const [statusMessage, setStatusMessage] = useState("");
@@ -949,11 +518,6 @@ export default function SchedulerDashboard() {
     };
   }, [range.end, range.start]);
 
-  const handleLogout = async () => {
-    await FetchBuilder.post().url("/api/auth/logout").execute();
-    router.replace("/login");
-  };
-
   const handleToggleLabel = (labelId: string, checked: boolean) => {
     setSelectedLabelIds((prev) => {
       if (checked) {
@@ -1179,8 +743,8 @@ export default function SchedulerDashboard() {
       return;
     }
 
-    let baseStart: dayjs.Dayjs;
-    let baseEnd: dayjs.Dayjs;
+    let baseStart: Dayjs;
+    let baseEnd: Dayjs;
 
     if (manualForm.all_day) {
       const endExclusive = endDate.add(1, "day").format("YYYY-MM-DD");
@@ -1741,7 +1305,7 @@ export default function SchedulerDashboard() {
 
   return (
     <div className="space-y-4">
-      <TopNavbar current="dashboard" title="교대 스케줄 대시보드" onLogout={() => void handleLogout()} />
+      <TopNavbar current="dashboard" title="교대 스케줄 대시보드" onLogout={() => void logout()} />
 
       {statusMessage ? (
         <div className="rounded-xl border border-cyan-300/30 bg-cyan-950/20 px-3 py-2 text-xs text-cyan-100">
@@ -2096,7 +1660,7 @@ export default function SchedulerDashboard() {
                           views={["hours", "minutes"]}
                           format="HH:mm"
                           disabled={manualForm.all_day}
-                          value={toPickerTime(manualForm.start_time)}
+                        value={toTimePickerValue(manualForm.start_time)}
                           onChange={(nextValue) => {
                             if (!nextValue || !nextValue.isValid()) {
                               return;
@@ -2108,7 +1672,7 @@ export default function SchedulerDashboard() {
                               className: "shift-time-picker-field",
                               fullWidth: true,
                               size: "small",
-                              sx: pickerFieldSx
+                            sx: timePickerFieldSx
                             }
                           }}
                         />
@@ -2120,7 +1684,7 @@ export default function SchedulerDashboard() {
                           views={["hours", "minutes"]}
                           format="HH:mm"
                           disabled={manualForm.all_day}
-                          value={toPickerTime(manualForm.end_time)}
+                        value={toTimePickerValue(manualForm.end_time)}
                           onChange={(nextValue) => {
                             if (!nextValue || !nextValue.isValid()) {
                               return;
@@ -2132,7 +1696,7 @@ export default function SchedulerDashboard() {
                               className: "shift-time-picker-field",
                               fullWidth: true,
                               size: "small",
-                              sx: pickerFieldSx
+                            sx: timePickerFieldSx
                             }
                           }}
                         />
@@ -2433,7 +1997,7 @@ export default function SchedulerDashboard() {
                           views={["hours", "minutes"]}
                           format="HH:mm"
                           disabled={detailForm.all_day}
-                          value={toPickerTime(detailForm.start_time)}
+                        value={toTimePickerValue(detailForm.start_time)}
                           onChange={(nextValue) => {
                             if (!nextValue || !nextValue.isValid()) {
                               return;
@@ -2445,7 +2009,7 @@ export default function SchedulerDashboard() {
                               className: "shift-time-picker-field",
                               fullWidth: true,
                               size: "small",
-                              sx: pickerFieldSx
+                            sx: timePickerFieldSx
                             }
                           }}
                         />
@@ -2457,7 +2021,7 @@ export default function SchedulerDashboard() {
                           views={["hours", "minutes"]}
                           format="HH:mm"
                           disabled={detailForm.all_day}
-                          value={toPickerTime(detailForm.end_time)}
+                        value={toTimePickerValue(detailForm.end_time)}
                           onChange={(nextValue) => {
                             if (!nextValue || !nextValue.isValid()) {
                               return;
@@ -2469,7 +2033,7 @@ export default function SchedulerDashboard() {
                               className: "shift-time-picker-field",
                               fullWidth: true,
                               size: "small",
-                              sx: pickerFieldSx
+                            sx: timePickerFieldSx
                             }
                           }}
                         />

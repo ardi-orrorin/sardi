@@ -1,7 +1,11 @@
 # SARDI
 
-모바일 우선 교대근무 스케줄 관리 웹앱입니다.  
-프론트엔드는 Next.js(App Router), 백엔드는 `synol-backend-rust`를 사용합니다.
+교대근무 스케줄 관리 웹앱입니다.
+
+![image](./docs/SCR-20260227-lkpl.png)
+![image](./docs/SCR-20260302-mwhv.jpeg)
+![image](./docs/SCR-20260302-mwmq.png)
+![image](./docs/mobile.jpg)
 
 ## 핵심 기능
 
@@ -24,14 +28,9 @@
 
 ## 환경 변수
 
-`.env.local`에 설정합니다.
-
 ```env
 SARDI_BACKEND_URL=http://127.0.0.1:8080
 ```
-
-- `SARDI_BACKEND_URL`이 없으면 `NYAA_BACKEND_URL`을 fallback으로 사용합니다.
-- 값 끝에 `/`는 없어도 됩니다(내부에서 정규화).
 
 ## 실행
 
@@ -62,9 +61,9 @@ docker run --rm -p 3000:3000 -e SARDI_BACKEND_URL=http://host.docker.internal:80
 - 트리거: 브랜치 `release/*`가 아니라 **Git Tag push** 기반
   - 예: `v0.1.0` 또는 `0.1.0`
 - 동작:
-  1) 태그에서 버전 추출
-  2) 멀티아키(amd64/arm64) Docker 이미지 빌드/푸시
-  3) 배포 웹훅 호출
+  1. 태그에서 버전 추출
+  2. 멀티아키(amd64/arm64) Docker 이미지 빌드/푸시
+  3. 배포 웹훅 호출
 
 ## 주요 페이지
 
@@ -75,29 +74,6 @@ docker run --rm -p 3000:3000 -e SARDI_BACKEND_URL=http://host.docker.internal:80
 - `/login`: 로그인(비밀번호 + 패스키)
 - `/passkey`: 레거시 경로, `/settings/account`로 리다이렉트
 
-## API 프록시 구조
-
-Next.js Route Handler를 통해 백엔드로 프록시합니다.
-
-- 인증:
-  - `POST /api/auth/logout`
-  - `POST /api/auth/change-password`
-- WebAuthn:
-  - `POST /api/webauthn/auth/options`
-  - `POST /api/webauthn/auth/finish`
-  - `POST /api/webauthn/register/options`
-  - `POST /api/webauthn/register/finish`
-  - `GET /api/webauthn/credentials`
-  - `PATCH /api/webauthn/credentials/{id}`
-  - `DELETE /api/webauthn/credentials/{id}`
-  - `DELETE /api/webauthn/credentials`
-- 스케줄러:
-  - `/api/sardi/shift-types`
-  - `/api/sardi/patterns`
-  - `/api/sardi/schedules`
-  - `/api/sardi/schedule-groups`
-  - `/api/sardi/schedule-labels`
-
 ## 도메인 규칙
 
 - UI 타임존: `Asia/Seoul`
@@ -105,11 +81,6 @@ Next.js Route Handler를 통해 백엔드로 프록시합니다.
 - 반복 종료 기준: 종료일이 아닌 반복 횟수
 - 라벨은 일정 등록 시 필수
 - 휴일 테마는 제목에 `휴일`이 포함된 일정에 적용
-
-## 백엔드/DB 참고
-
-- 백엔드 프로젝트: `../synol-backend-rust`
-- 스키마 참고: `../synol-backend-rust/sql/shift-scheduler.sql`
 
 ## 문서
 

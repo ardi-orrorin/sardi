@@ -1,49 +1,28 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-import { proxyRequest, readAuthToken, unauthorizedResponse } from "../_shared";
+import { handleSardiProxy } from "../_shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
-  const token = await readAuthToken();
-  if (!token) {
-    return unauthorizedResponse();
-  }
-
   const start = req.nextUrl.searchParams.get("start");
   const end = req.nextUrl.searchParams.get("end");
 
   if (!start || !end) {
-    return Response.json({ error: "start/end query required" }, { status: 400 });
+    return NextResponse.json({ error: "start/end query required" }, { status: 400 });
   }
 
   const qs = new URLSearchParams({ start, end }).toString();
-
-  try {
-    return await proxyRequest(req, "GET", `/api/v1/sardi/private/schedules?${qs}`, token);
-  } catch (error) {
-    console.error("schedules GET error:", error);
-    return Response.json({ error: "request failed" }, { status: 500 });
-  }
+  return handleSardiProxy(req, "GET", `/api/v1/sardi/private/schedules?${qs}`, {
+    logLabel: "schedules GET"
+  });
 }
 
 export async function POST(req: NextRequest) {
-  const token = await readAuthToken();
-  if (!token) {
-    return unauthorizedResponse();
-  }
-
-  const body = await req.json().catch(() => null);
-  if (!body) {
-    return Response.json({ error: "invalid request" }, { status: 400 });
-  }
-
-  try {
-    return await proxyRequest(req, "POST", "/api/v1/sardi/private/schedules", token, body);
-  } catch (error) {
-    console.error("schedules POST error:", error);
-    return Response.json({ error: "request failed" }, { status: 500 });
-  }
+  return handleSardiProxy(req, "POST", "/api/v1/sardi/private/schedules", {
+    requireBody: true,
+    logLabel: "schedules POST"
+  });
 }

@@ -1,8 +1,12 @@
 "use client";
 
 import { FetchBuilder } from "@/app/_commons/utils/func";
+import { EditIcon, TrashIcon } from "@/app/_services/components/icons";
+import { useAuthActions } from "@/app/_services/hooks/use-auth-actions";
 import { NumberDropdown } from "@/app/_services/components/number-dropdown";
 import { TopNavbar } from "@/app/_services/components/top-navbar";
+import { deriveEndTime, parseHmsToSeconds, secondsToHms } from "@/app/_services/utils/shift-time";
+import { timePickerFieldSx, toTimePickerValue } from "@/app/_services/utils/time-picker";
 import {
   DndContext,
   DragEndEvent,
@@ -17,12 +21,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
-import dayjs, { Dayjs } from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import { useRouter } from "next/navigation";
 import { ButtonHTMLAttributes, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-dayjs.extend(customParseFormat);
 
 type ShiftType = {
   id: string;
@@ -71,91 +70,6 @@ const normalizeStepOrder = (steps: PatternStepDraft[]) =>
     step_order: index
   }));
 
-const parseHmsToSeconds = (value: string, allow24Hour: boolean) => {
-  const trimmed = value.trim();
-  const parts = trimmed.split(":");
-  if (parts.length !== 2 && parts.length !== 3) {
-    return null;
-  }
-
-  const hours = Number(parts[0]);
-  const minutes = Number(parts[1]);
-  const seconds = parts.length === 3 ? Number(parts[2]) : 0;
-
-  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || !Number.isInteger(seconds)) {
-    return null;
-  }
-
-  if (allow24Hour && hours === 24 && minutes === 0 && seconds === 0) {
-    return 24 * 60 * 60;
-  }
-
-  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || seconds < 0 || seconds > 59) {
-    return null;
-  }
-
-  return hours * 3600 + minutes * 60 + seconds;
-};
-
-const secondsToHms = (value: number) => {
-  const safe = Math.max(0, Math.min(value, 24 * 60 * 60));
-  const hours = Math.floor(safe / 3600);
-  const minutes = Math.floor((safe % 3600) / 60);
-  const seconds = safe % 60;
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-};
-
-const deriveEndTime = (startOffset: string, duration: string) => {
-  const startSeconds = parseHmsToSeconds(startOffset, false);
-  const durationSeconds = parseHmsToSeconds(duration, true);
-  if (startSeconds === null || durationSeconds === null) {
-    return "10:00:00";
-  }
-
-  const endSeconds = startSeconds + durationSeconds;
-  if (endSeconds <= startSeconds || endSeconds > 24 * 60 * 60) {
-    return "10:00:00";
-  }
-
-  return secondsToHms(endSeconds);
-};
-
-const toPickerTime = (value: string): Dayjs | null => {
-  const parsed = dayjs(value.trim(), ["HH:mm:ss", "HH:mm"], true);
-  return parsed.isValid() ? parsed : null;
-};
-
-const pickerFieldSx = {
-  "& .MuiInputBase-root": {
-    minHeight: "44px",
-    borderRadius: "0.5rem",
-    color: "var(--time-picker-input-color) !important",
-    backgroundColor: "var(--surface-strong)"
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "var(--border-main)"
-  },
-  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "var(--border-main)"
-  },
-  "& .MuiSvgIcon-root": {
-    color: "var(--time-picker-input-color) !important",
-    opacity: 0.78
-  },
-  "& .MuiInputBase-input": {
-    color: "var(--time-picker-input-color) !important",
-    WebkitTextFillColor: "var(--time-picker-input-color) !important"
-  },
-  "& .MuiInputLabel-root": {
-    color: "var(--time-picker-input-color) !important",
-    opacity: 0.78
-  },
-  "& .MuiInputLabel-root.Mui-focused": {
-    color: "var(--time-picker-input-color) !important",
-    opacity: 0.95
-  }
-} as const;
-
 type StepDropdownOption = {
   value: string;
   label: string;
@@ -168,30 +82,6 @@ type StepDropdownProps = {
   placeholder: string;
   className?: string;
 };
-
-type IconProps = {
-  className?: string;
-};
-
-function EditIcon({ className = "h-4 w-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-    </svg>
-  );
-}
-
-function TrashIcon({ className = "h-4 w-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-      <path d="M3 6h18" />
-      <path d="M8 6V4h8v2" />
-      <path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v6M14 11v6" />
-    </svg>
-  );
-}
 
 function StepDropdown({ options, value, onChange, placeholder, className = "" }: StepDropdownProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -339,7 +229,7 @@ function SortablePatternStepItem({
 }
 
 export default function ShiftSettings() {
-  const router = useRouter();
+  const { logout } = useAuthActions();
 
   const [statusMessage, setStatusMessage] = useState("");
   const [statusKind, setStatusKind] = useState<"info" | "success" | "error">("info");
@@ -443,11 +333,6 @@ export default function ShiftSettings() {
   useEffect(() => {
     setDndReady(true);
   }, []);
-
-  const handleLogout = async () => {
-    await FetchBuilder.post().url("/api/auth/logout").execute();
-    router.replace("/login");
-  };
 
   const resetShiftTypeForm = useCallback(() => {
     setShiftTypeForm({
@@ -745,7 +630,7 @@ export default function ShiftSettings() {
 
   return (
     <div className="space-y-4">
-      <TopNavbar current="shifts" title="근무 타입/패턴 설정" onLogout={() => void handleLogout()} />
+      <TopNavbar current="shifts" title="근무 타입/패턴 설정" onLogout={() => void logout()} />
 
       {statusMessage ? (
         <div
@@ -792,7 +677,7 @@ export default function ShiftSettings() {
                   ampm={false}
                   views={["hours", "minutes"]}
                   format="HH:mm"
-                  value={toPickerTime(shiftTypeForm.start_time)}
+                  value={toTimePickerValue(shiftTypeForm.start_time)}
                   onChange={(nextValue) => {
                     if (!nextValue || !nextValue.isValid()) {
                       return;
@@ -805,7 +690,7 @@ export default function ShiftSettings() {
                       required: true,
                       fullWidth: true,
                       size: "small",
-                      sx: pickerFieldSx
+                      sx: timePickerFieldSx
                     }
                   }}
                 />
@@ -818,7 +703,7 @@ export default function ShiftSettings() {
                   ampm={false}
                   views={["hours", "minutes"]}
                   format="HH:mm"
-                  value={toPickerTime(shiftTypeForm.end_time)}
+                  value={toTimePickerValue(shiftTypeForm.end_time)}
                   onChange={(nextValue) => {
                     if (!nextValue || !nextValue.isValid()) {
                       return;
@@ -831,7 +716,7 @@ export default function ShiftSettings() {
                       required: true,
                       fullWidth: true,
                       size: "small",
-                      sx: pickerFieldSx
+                      sx: timePickerFieldSx
                     }
                   }}
                 />

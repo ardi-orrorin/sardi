@@ -1,4 +1,5 @@
 import { ThemeToggleFab } from "@/app/_services/components/theme-toggle-fab";
+import { ProductionConsoleGuard } from "@/app/_services/components/production-console-guard";
 import type { Metadata } from "next";
 
 import "./globals.css";
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="antialiased">
+        <ProductionConsoleGuard />
         {children}
         <ThemeToggleFab />
       </body>
