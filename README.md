@@ -2,7 +2,6 @@
 
 교대근무 스케줄 관리 웹앱입니다.
 
-![image](./docs/SCR-20260227-lkpl.png)
 ![image](./docs/SCR-20260302-mwhv.jpeg)
 ![image](./docs/SCR-20260302-mwmq.png)
 ![image](./docs/mobile.jpg)
