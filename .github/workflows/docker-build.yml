@@ -38,6 +38,13 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
+      - name: Validate required build secrets
+        run: |
+          if [ -z "${{ secrets.BUILD_SARDI_BACKEND_URL }}" ]; then
+            echo "BUILD_SARDI_BACKEND_URL 시크릿이 비어 있습니다."
+            exit 1
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -47,6 +54,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             NEXT_PUBLIC_VERSION=${{ env.VERSION }}
+            BUILD_SARDI_BACKEND_URL=${{ secrets.BUILD_SARDI_BACKEND_URL }}
           tags: |
             ${{ env.IMAGE_NAME }}:v${{ env.VERSION }}
             ${{ env.IMAGE_NAME }}:latest

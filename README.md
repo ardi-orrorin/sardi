@@ -28,8 +28,20 @@
 ## 환경 변수
 
 ```env
+# 빌드타임(Next rewrites 전용)
+BUILD_SARDI_BACKEND_URL=http://127.0.0.1:8080
+
+# 런타임(Route Handler 프록시 전용)
 SARDI_BACKEND_URL=http://127.0.0.1:8080
 ```
+
+- `BUILD_SARDI_BACKEND_URL`
+  - 사용 위치: `next.config.ts` rewrites
+  - 반영 시점: **빌드 타임**
+  - 주의: 이미지 빌드 시 값이 고정되므로, 운영에서는 반드시 빌드 단계에 주입해야 합니다.
+- `SARDI_BACKEND_URL`
+  - 사용 위치: `app/api/**` Route Handler 프록시 (`makeBackendUrl`)
+  - 반영 시점: **런타임**
 
 ## 실행
 
@@ -50,7 +62,11 @@ npm run build
 이미지 빌드는 `docker/Dockerfile` 기준입니다.
 
 ```bash
-docker build -f docker/Dockerfile -t sardi:local .
+docker build \
+  -f docker/Dockerfile \
+  --build-arg BUILD_SARDI_BACKEND_URL=http://host.docker.internal:8080 \
+  -t sardi:local .
+
 docker run --rm -p 3000:3000 -e SARDI_BACKEND_URL=http://host.docker.internal:8080 sardi:local
 ```
 

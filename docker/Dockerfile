@@ -4,6 +4,9 @@ LABEL author="ARDI"
 ENV NODE_ENV=production
 WORKDIR /app
 
+ARG BUILD_SARDI_BACKEND_URL
+ENV BUILD_SARDI_BACKEND_URL=${BUILD_SARDI_BACKEND_URL}
+
 COPY package.json package-lock.json ./
 
 RUN npm ci --include=dev --include=optional

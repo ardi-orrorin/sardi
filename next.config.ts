@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
-const backendBaseUrlRaw = process.env.SARDI_BACKEND_URL ?? process.env.NYAA_BACKEND_URL ?? "http://localhost:8080";
+const backendBaseUrlRaw =
+  process.env.BUILD_SARDI_BACKEND_URL ?? (process.env.NODE_ENV === "development" ? "http://localhost:8080" : undefined);
+if (!backendBaseUrlRaw) {
+  throw new Error("BUILD_SARDI_BACKEND_URL is required for production build rewrites.");
+}
 const backendBaseUrl = backendBaseUrlRaw.endsWith("/") ? backendBaseUrlRaw.slice(0, -1) : backendBaseUrlRaw;
 
 const nextConfig: NextConfig = {
