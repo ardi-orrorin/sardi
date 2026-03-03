@@ -181,8 +181,8 @@ export default function SchedulerDashboard() {
   const [range, setRange] = useState(() => {
     const now = dayjs().tz(SEOUL_TZ);
     return {
-      start: now.startOf("month").subtract(7, "day").toISOString(),
-      end: now.endOf("month").add(7, "day").toISOString()
+      start: now.startOf("month").subtract(7, "day").format("YYYY-MM-DDTHH:mm:ssZ"),
+      end: now.endOf("month").add(7, "day").format("YYYY-MM-DDTHH:mm:ssZ")
     };
   });
   const [scheduleSearchInput, setScheduleSearchInput] = useState("");
@@ -761,8 +761,8 @@ export default function SchedulerDashboard() {
       return;
     }
 
-    const startDate = dayjs(manualForm.start_date);
-    const endDate = dayjs(manualForm.end_date);
+    const startDate = dayjs.tz(manualForm.start_date, "YYYY-MM-DD", SEOUL_TZ);
+    const endDate = dayjs.tz(manualForm.end_date, "YYYY-MM-DD", SEOUL_TZ);
 
     if (!startDate.isValid() || !endDate.isValid()) {
       setStatusMessage("날짜 형식이 올바르지 않습니다.");
@@ -1170,8 +1170,8 @@ export default function SchedulerDashboard() {
       return;
     }
 
-    const startDate = dayjs(detailForm.start_date);
-    const endDate = dayjs(detailForm.end_date);
+    const startDate = dayjs.tz(detailForm.start_date, "YYYY-MM-DD", SEOUL_TZ);
+    const endDate = dayjs.tz(detailForm.end_date, "YYYY-MM-DD", SEOUL_TZ);
     if (!startDate.isValid() || !endDate.isValid()) {
       setStatusMessage("날짜 형식이 올바르지 않습니다.");
       return;
@@ -1436,8 +1436,8 @@ export default function SchedulerDashboard() {
                 const start = arg.view.currentStart;
                 const end = arg.view.currentEnd;
                 setRange({
-                  start: dayjs(start).toISOString(),
-                  end: dayjs(end).toISOString()
+                  start: dayjs(start).tz(SEOUL_TZ).format("YYYY-MM-DDTHH:mm:ssZ"),
+                  end: dayjs(end).tz(SEOUL_TZ).format("YYYY-MM-DDTHH:mm:ssZ")
                 });
               }}
               select={(arg) => {
