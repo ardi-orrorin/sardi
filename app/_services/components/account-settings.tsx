@@ -465,10 +465,10 @@ export default function AccountSettings() {
             </div>
             <div className="space-y-1">
               <p className="font-semibold text-teal-100">수동 CalDAV URL</p>
-              <p className="break-all">{buildPublicUrl("/api/v1/sardi/public/caldav/calendar")}</p>
+              <p className="break-all">{buildPublicUrl("/api/v1/sardi/public/caldav")}</p>
               <button
                 type="button"
-                onClick={() => void copyText(buildPublicUrl("/api/v1/sardi/public/caldav/calendar"))}
+                onClick={() => void copyText(buildPublicUrl("/api/v1/sardi/public/caldav"))}
                 className="rounded-md border border-teal-100/40 px-2 py-1 text-[11px] text-teal-100"
                 disabled={!publicBaseUrl}
               >

@@ -22,7 +22,7 @@ function withProxyUrls(payload: CalendarExportLinkPayload, publicBaseUrl: string
   return {
     ...payload,
     ics_url: `${publicBaseUrl}/api/v1/sardi/public/ics/${encoded}`,
-    caldav_url: `${publicBaseUrl}/api/v1/sardi/public/caldav/${encoded}/calendar`
+    caldav_url: `${publicBaseUrl}/api/v1/sardi/public/caldav/${encoded}`
   };
 }
 
