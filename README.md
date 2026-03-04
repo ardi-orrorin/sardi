@@ -101,3 +101,5 @@ docker run --rm -p 3000:3000 -e SARDI_BACKEND_URL=http://host.docker.internal:80
 
 - 에이전트 작업 규칙: `AGENTS.md`
 - 작업 스킬 가이드: `SKILL.md`
+
+## 테스트
