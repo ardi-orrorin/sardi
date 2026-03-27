@@ -1,8 +1,30 @@
 import { ThemeToggleFab } from "@/app/_services/components/theme-toggle-fab";
 import { ProductionConsoleGuard } from "@/app/_services/components/production-console-guard";
 import type { Metadata } from "next";
+import Script from "next/script";
 
 import "./globals.css";
+
+const THEME_STORAGE_KEY = "sardi-theme-mode";
+
+const themeBootstrapScript = `
+  (() => {
+    try {
+      const stored = window.localStorage.getItem("${THEME_STORAGE_KEY}");
+      const mode =
+        stored === "light" || stored === "dark"
+          ? stored
+          : window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+      const root = document.documentElement;
+      root.classList.remove("theme-light", "theme-dark");
+      root.classList.add(mode === "light" ? "theme-light" : "theme-dark");
+    } catch (error) {
+      document.documentElement.classList.add("theme-dark");
+    }
+  })();
+`;
 
 export const metadata: Metadata = {
   title: "SARDI | 교대 스케줄",
@@ -23,8 +45,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body className="antialiased">
+        <Script id="sardi-theme-bootstrap" strategy="beforeInteractive">
+          {themeBootstrapScript}
+        </Script>
         <ProductionConsoleGuard />
         {children}
         <ThemeToggleFab />

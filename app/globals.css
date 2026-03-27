@@ -11,13 +11,13 @@
 }
 
 html.theme-light {
-  --bg-main: #eff7fb;
-  --text-main: #142838;
-  --time-picker-input-color: #142838;
-  --app-gradient: radial-gradient(circle at top, #ffffff 0%, #edf6f9 45%, #e2edf4 100%);
-  --surface-strong: rgba(255, 255, 255, 0.88);
-  --surface-soft: rgba(255, 255, 255, 0.76);
-  --border-main: rgba(13, 110, 123, 0.22);
+  --bg-main: #f8fafc;
+  --text-main: #0f172a;
+  --time-picker-input-color: #0f172a;
+  --app-gradient: radial-gradient(circle at top, #ffffff 0%, #f1f5f9 45%, #e2e8f0 100%);
+  --surface-strong: rgba(255, 255, 255, 0.97);
+  --surface-soft: rgba(248, 250, 252, 0.92);
+  --border-main: rgba(100, 116, 139, 0.22);
 }
 
 @theme inline {
@@ -93,43 +93,48 @@ textarea {
 }
 
 html.theme-light .theme-toggle-fab {
-  background: rgba(255, 255, 255, 0.9) !important;
-  color: #173447 !important;
-  border-color: rgba(13, 110, 123, 0.35) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0f172a !important;
+  border-color: rgba(100, 116, 139, 0.35) !important;
 }
 
 html.theme-light .top-navbar-brand {
-  color: rgba(22, 78, 99, 0.72) !important;
+  color: #64748b !important;
 }
 
 html.theme-light .top-navbar-title {
   color: #0f172a !important;
 }
 
+html.theme-light .top-navbar-breadcrumb,
+html.theme-light .top-navbar-submenu-label {
+  color: #64748b !important;
+}
+
 html.theme-light .top-navbar-action {
-  border-color: rgba(71, 85, 105, 0.4) !important;
-  background: rgba(241, 245, 249, 0.96) !important;
+  border-color: rgba(100, 116, 139, 0.35) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
   color: #0f172a !important;
 }
 
 html.theme-light .top-navbar-action:hover {
-  background: rgba(226, 232, 240, 0.96) !important;
+  background: rgba(241, 245, 249, 0.98) !important;
 }
 
 html.theme-light .top-navbar-link-inactive {
-  border-color: rgba(71, 85, 105, 0.42) !important;
-  background: rgba(241, 245, 249, 0.95) !important;
-  color: #0f172a !important;
+  border-color: rgba(100, 116, 139, 0.28) !important;
+  background: rgba(255, 255, 255, 0.90) !important;
+  color: #1e293b !important;
 }
 
 html.theme-light .top-navbar-link-inactive:hover {
-  background: rgba(226, 232, 240, 0.95) !important;
+  background: rgba(241, 245, 249, 0.98) !important;
 }
 
 html.theme-light .top-navbar-link-active {
-  border-color: rgba(15, 23, 42, 0.55) !important;
-  background: rgba(203, 213, 225, 0.96) !important;
-  color: #020617 !important;
+  border-color: rgba(15, 23, 42, 0.65) !important;
+  background: rgba(15, 23, 42, 0.90) !important;
+  color: #f8fafc !important;
 }
 
 html.theme-dark .theme-toggle-fab {
@@ -181,22 +186,112 @@ html.theme-light [class*="bg-[#031718]"] {
 
 html.theme-light [class*="border-teal-"],
 html.theme-light [class*="border-cyan-"] {
-  border-color: rgba(13, 110, 123, 0.24) !important;
+  border-color: rgba(100, 116, 139, 0.25) !important;
 }
 
 html.theme-light [class*="text-teal-"],
 html.theme-light [class*="text-cyan-"] {
-  color: #1c3a4b !important;
+  color: #1e293b !important;
 }
 
 html.theme-light [class*="placeholder:text-teal-"],
 html.theme-light [class*="placeholder:text-cyan-"] {
-  color: rgba(28, 58, 75, 0.45) !important;
+  color: rgba(100, 116, 139, 0.50) !important;
 }
 
 html.theme-light .bg-teal-300,
 html.theme-light .bg-cyan-300 {
-  color: #132b36 !important;
+  color: #0f172a !important;
+}
+
+/* 근무 형태 필터 태그: 인라인 text_color(흰색)가 흰 배경에서 안 보이는 문제 보정
+   내부 코드 뱃지 <span>은 자체 인라인 style이 있어 영향받지 않음 */
+html.theme-light .schedule-shell button[aria-pressed] {
+  color: var(--text-main) !important;
+}
+
+/* 주·월 뷰 당일 하이라이트: ring-1 ring-inset 조합이 흰 배경에서 너무 연해서 진하게 보정 */
+html.theme-light .schedule-shell [class*="ring-1"][class*="ring-inset"] {
+  box-shadow: inset 0 0 0 2px rgba(8, 145, 178, 0.68) !important;
+  background-color: rgba(8, 145, 178, 0.06) !important;
+}
+
+/* 흰 배경에서 가시성 없는 밝은 시맨틱 색상 보정 */
+html.theme-light [class*="text-blue-1"] {
+  color: #3b82f6 !important;
+}
+
+html.theme-light [class*="text-emerald-1"],
+html.theme-light [class*="text-emerald-2"] {
+  color: #047857 !important;
+}
+
+html.theme-light [class*="text-amber-2"] {
+  color: #b45309 !important;
+}
+
+html.theme-light [class*="border-blue-"] {
+  border-color: rgba(29, 78, 216, 0.28) !important;
+}
+
+html.theme-light [class*="bg-blue-950"] {
+  background-color: rgba(239, 246, 255, 0.90) !important;
+}
+
+html.theme-light .schedule-shell [class*="bg-zinc-950"] {
+  background-color: rgba(255, 255, 255, 0.97) !important;
+}
+
+html.theme-light .schedule-shell [class*="bg-zinc-900"] {
+  background-color: rgba(248, 250, 252, 0.96) !important;
+}
+
+html.theme-light .schedule-shell [class*="bg-zinc-800"] {
+  background-color: rgba(241, 245, 249, 0.92) !important;
+}
+
+html.theme-light .schedule-shell [class*="border-zinc-800"],
+html.theme-light .schedule-shell [class*="border-zinc-700"],
+html.theme-light .schedule-shell [class*="border-zinc-600"] {
+  border-color: rgba(100, 116, 139, 0.28) !important;
+}
+
+html.theme-light .schedule-shell [class*="text-zinc-50"],
+html.theme-light .schedule-shell [class*="text-zinc-100"],
+html.theme-light .schedule-shell [class*="text-zinc-200"] {
+  color: #0f172a !important;
+}
+
+html.theme-light .schedule-shell [class*="text-zinc-300"] {
+  color: #1e293b !important;
+}
+
+html.theme-light .schedule-shell [class*="text-zinc-400"] {
+  color: #334155 !important;
+}
+
+html.theme-light .schedule-shell [class*="text-zinc-500"] {
+  color: #475569 !important;
+}
+
+html.theme-light .schedule-shell [class*="bg-[#070b14]"] {
+  background-color: rgba(255, 255, 255, 0.97) !important;
+}
+
+html.theme-light .schedule-shell [class*="border-rose-"] {
+  border-color: rgba(248, 113, 113, 0.28) !important;
+}
+
+html.theme-light .schedule-shell [class*="text-rose-"] {
+  color: #ef4444 !important;
+}
+
+html.theme-light .schedule-shell [class*="border-sky-"] {
+  border-color: rgba(96, 165, 250, 0.26) !important;
+}
+
+html.theme-light .schedule-shell [class*="text-sky-"] {
+  color: #3b82f6 !important;
 }
 
 .fc .fc-toolbar {
@@ -502,91 +597,91 @@ html.theme-light .bg-cyan-300 {
 }
 
 html.theme-light .fc {
-  --fc-page-bg-color: rgba(252, 255, 255, 0.95);
-  --fc-neutral-bg-color: rgba(223, 238, 243, 0.8);
-  --fc-border-color: rgba(84, 144, 152, 0.28);
-  --fc-neutral-text-color: #244552;
+  --fc-page-bg-color: rgba(255, 255, 255, 0.98);
+  --fc-neutral-bg-color: rgba(241, 245, 249, 0.90);
+  --fc-border-color: rgba(148, 163, 184, 0.40);
+  --fc-neutral-text-color: #1e293b;
 }
 
 html.theme-light .fc .fc-button {
-  border-color: rgba(56, 125, 131, 0.36);
-  background: rgba(225, 245, 247, 0.95);
-  color: #1c4a5f;
+  border-color: rgba(100, 116, 139, 0.38);
+  background: rgba(255, 255, 255, 0.96);
+  color: #1e293b;
 }
 
 html.theme-light .fc .fc-button:hover {
-  background: rgba(205, 237, 240, 0.98);
+  background: rgba(241, 245, 249, 0.98);
 }
 
 html.theme-light .fc .fc-button-primary {
-  background: rgba(225, 245, 247, 0.95) !important;
-  border-color: rgba(56, 125, 131, 0.36) !important;
-  color: #1c4a5f !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(100, 116, 139, 0.38) !important;
+  color: #1e293b !important;
 }
 
 html.theme-light .fc .fc-button-primary:hover {
-  background: rgba(205, 237, 240, 0.98) !important;
-  border-color: rgba(52, 116, 122, 0.45) !important;
-  color: #163e51 !important;
+  background: rgba(241, 245, 249, 0.98) !important;
+  border-color: rgba(71, 85, 105, 0.45) !important;
+  color: #0f172a !important;
 }
 
 html.theme-light .fc .fc-button-primary:not(:disabled).fc-button-active,
 html.theme-light .fc .fc-button-primary:not(:disabled):active {
-  background: rgba(166, 222, 228, 0.98) !important;
-  border-color: rgba(47, 107, 113, 0.52) !important;
-  color: #163544 !important;
+  background: rgba(15, 23, 42, 0.90) !important;
+  border-color: rgba(15, 23, 42, 0.70) !important;
+  color: #f8fafc !important;
 }
 
 html.theme-light .fc .fc-button-primary:focus,
 html.theme-light .fc .fc-button-primary:focus-visible {
-  box-shadow: 0 0 0 2px rgba(78, 153, 160, 0.28) !important;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.32) !important;
 }
 
 html.theme-light .fc-theme-standard .fc-scrollgrid,
 html.theme-light .fc-theme-standard td,
 html.theme-light .fc-theme-standard th {
-  border-color: rgba(84, 144, 152, 0.28);
+  border-color: rgba(148, 163, 184, 0.38);
 }
 
 html.theme-light .fc .fc-col-header-cell-cushion,
 html.theme-light .fc .fc-daygrid-day-number {
-  color: #214757 !important;
+  color: #334155 !important;
 }
 
 html.theme-light .fc .fc-daygrid-day.fc-day-today {
-  background: rgba(141, 215, 207, 0.22);
+  background: rgba(148, 163, 184, 0.15);
 }
 
 html.theme-light .fc .fc-multimonth-month {
-  background: rgba(239, 248, 250, 0.96) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
 }
 
 html.theme-light .fc .fc-multimonth-title {
-  background: rgba(194, 226, 231, 0.95) !important;
-  color: #173f50 !important;
+  background: rgba(241, 245, 249, 0.96) !important;
+  color: #1e293b !important;
 }
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day {
-  background: rgba(247, 252, 253, 0.95) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
 }
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-day-other {
-  background: rgba(236, 246, 248, 0.84) !important;
+  background: rgba(241, 245, 249, 0.90) !important;
 }
 
 html.theme-light .fc .fc-multimonth .fc-scrollgrid,
 html.theme-light .fc .fc-multimonth .fc-scrollgrid-section > *,
 html.theme-light .fc .fc-multimonth .fc-scrollgrid-sync-table,
 html.theme-light .fc .fc-multimonth .fc-scrollgrid-sync-table th {
-  background: rgba(238, 248, 250, 0.95) !important;
+  background: rgba(248, 250, 252, 0.96) !important;
 }
 
 html.theme-light .fc .fc-multimonth .fc-col-header-cell {
-  background: rgba(225, 236, 241, 0.95) !important;
+  background: rgba(241, 245, 249, 0.96) !important;
 }
 
 html.theme-light .fc .fc-multimonth .fc-col-header-cell-cushion {
-  color: #334155 !important;
+  color: #475569 !important;
 }
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day-number {
@@ -594,77 +689,77 @@ html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day-number {
 }
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-day-other .fc-daygrid-day-number {
-  color: rgba(71, 85, 105, 0.72) !important;
+  color: rgba(71, 85, 105, 0.65) !important;
 }
 
 html.theme-light .fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
-  color: #e11d48 !important;
+  color: #ef4444 !important;
 }
 
 html.theme-light .fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
-  color: #2563eb !important;
+  color: #3b82f6 !important;
 }
 
 html.theme-light .fc .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number {
-  color: #e11d48 !important;
+  color: #ef4444 !important;
 }
 
 html.theme-light .fc .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number {
-  color: #2563eb !important;
+  color: #3b82f6 !important;
 }
 
 html.theme-light .fc .fc-daygrid-day.fc-day-sun,
 html.theme-light .fc .fc-timegrid-col.fc-day-sun {
-  background: rgba(244, 63, 94, 0.2) !important;
+  background: rgba(254, 202, 202, 0.45) !important;
 }
 
 html.theme-light .fc .fc-daygrid-day.fc-day-sat,
 html.theme-light .fc .fc-timegrid-col.fc-day-sat {
-  background: rgba(59, 130, 246, 0.2) !important;
+  background: rgba(191, 219, 254, 0.45) !important;
 }
 
 html.theme-light .fc .fc-col-header-cell.fc-holiday-red .fc-col-header-cell-cushion,
 html.theme-light .fc .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number,
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number {
-  color: #e11d48 !important;
+  color: #ef4444 !important;
   font-weight: 700;
 }
 
 html.theme-light .fc .fc-daygrid-day.fc-holiday-red,
 html.theme-light .fc .fc-timegrid-col.fc-holiday-red {
-  background: rgba(244, 63, 94, 0.2) !important;
-  box-shadow: inset 0 0 0 1px rgba(225, 29, 72, 0.3);
+  background: rgba(254, 202, 202, 0.45) !important;
+  box-shadow: inset 0 0 0 1px rgba(254, 202, 202, 0.50);
 }
 
 html.theme-light .fc .fc-col-header-cell.fc-user-holiday .fc-col-header-cell-cushion,
 html.theme-light .fc .fc-daygrid-day.fc-user-holiday .fc-daygrid-day-number,
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday .fc-daygrid-day-number {
-  color: #e11d48 !important;
+  color: #ef4444 !important;
   font-weight: 700;
 }
 
 html.theme-light .fc .fc-daygrid-day.fc-user-holiday,
 html.theme-light .fc .fc-timegrid-col.fc-user-holiday {
-  background: rgba(244, 63, 94, 0.2) !important;
-  box-shadow: inset 0 0 0 1px rgba(225, 29, 72, 0.3);
+  background: rgba(254, 202, 202, 0.45) !important;
+  box-shadow: inset 0 0 0 1px rgba(254, 202, 202, 0.50);
 }
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
-  background: rgba(251, 113, 133, 0.3) !important;
+  background: rgba(254, 202, 202, 0.58) !important;
 }
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday {
-  background: rgba(251, 113, 133, 0.3) !important;
+  background: rgba(254, 202, 202, 0.58) !important;
 }
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun {
-  background: rgba(251, 113, 133, 0.3) !important;
+  background: rgba(254, 202, 202, 0.58) !important;
 }
 
 html.theme-light .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat {
-  background: rgba(96, 165, 250, 0.3) !important;
+  background: rgba(191, 219, 254, 0.58) !important;
 }
 
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion,
@@ -673,7 +768,7 @@ html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-holiday-red .fc-daygrid-day-number {
-  color: #214757 !important;
+  color: #334155 !important;
   font-weight: 600;
 }
 
@@ -696,7 +791,7 @@ html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-hol
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sun,
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-day-sat,
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-holiday-red {
-  background: rgba(247, 252, 253, 0.95) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
 }
 
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-col-header-cell.fc-user-holiday .fc-col-header-cell-cushion,
@@ -707,18 +802,18 @@ html.theme-light
   .fc-multimonth-daygrid
   .fc-daygrid-day.fc-user-holiday
   .fc-daygrid-day-number {
-  color: #e11d48 !important;
+  color: #ef4444 !important;
   font-weight: 700;
 }
 
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-daygrid-day.fc-user-holiday,
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-timegrid-col.fc-user-holiday {
-  background: rgba(244, 63, 94, 0.2) !important;
-  box-shadow: inset 0 0 0 1px rgba(225, 29, 72, 0.3) !important;
+  background: rgba(248, 113, 113, 0.18) !important;
+  box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.20) !important;
 }
 
 html.theme-light .calendar-weekend-holiday-theme-off .fc .fc-multimonth-daygrid .fc-daygrid-day.fc-user-holiday {
-  background: rgba(251, 113, 133, 0.3) !important;
+  background: rgba(248, 113, 113, 0.24) !important;
 }
 
 @media (min-width: 768px) {
@@ -802,9 +897,9 @@ html.theme-dark .MuiDialog-root .MuiClockPointer-thumb {
 
 html.theme-light .MuiDialog-root .MuiPaper-root,
 html.theme-light .MuiPickersPopper-root .MuiPaper-root {
-  background: rgba(255, 255, 255, 0.98) !important;
-  color: #142838 !important;
-  border: 1px solid rgba(13, 110, 123, 0.22) !important;
+  background: rgba(255, 255, 255, 0.99) !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(100, 116, 139, 0.22) !important;
 }
 
 html.theme-light .MuiDialog-root .MuiTypography-root,
@@ -812,7 +907,7 @@ html.theme-light .MuiDialog-root .MuiClockNumber-root,
 html.theme-light .MuiDialog-root .MuiIconButton-root,
 html.theme-light .MuiDialog-root .MuiButton-root,
 html.theme-light .MuiDialog-root .MuiSvgIcon-root {
-  color: #142838 !important;
+  color: #0f172a !important;
 }
 
 /* 근무 타입 시간 입력 필드(다크) 텍스트 흰색 강제 */

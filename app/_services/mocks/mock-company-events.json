@@ -1,0 +1,65 @@
+{
+  "updated_at": "2026-03-27T09:00:00+09:00",
+  "items": [
+    {
+      "id": "event-001",
+      "title": "신메뉴 출시 리허설",
+      "category": "운영",
+      "start_date": "2026-04-03",
+      "end_date": "2026-04-03",
+      "repeat_interval_days": 7,
+      "repeat_count": 1,
+      "color": "#0EA5E9",
+      "note": "17:00 이후 바/프론트 합동 교육",
+      "all_day": false
+    },
+    {
+      "id": "event-002",
+      "title": "주말 프로모션",
+      "category": "프로모션",
+      "start_date": "2026-04-04",
+      "end_date": "2026-04-05",
+      "repeat_interval_days": 7,
+      "repeat_count": 3,
+      "color": "#EC4899",
+      "note": "오픈 직후 고객 응대 인력 1명 추가 필요",
+      "all_day": true
+    },
+    {
+      "id": "event-003",
+      "title": "정기 재고 실사",
+      "category": "재고",
+      "start_date": "2026-04-14",
+      "end_date": "2026-04-14",
+      "repeat_interval_days": 14,
+      "repeat_count": 2,
+      "color": "#8B5CF6",
+      "note": "백룸/프론트 매니저 참석",
+      "all_day": true
+    },
+    {
+      "id": "event-004",
+      "title": "전사 타운홀",
+      "category": "사내 행사",
+      "start_date": "2026-04-24",
+      "end_date": "2026-04-24",
+      "repeat_interval_days": 7,
+      "repeat_count": 1,
+      "color": "#F59E0B",
+      "note": "15:00 본사 라이브 시청",
+      "all_day": false
+    },
+    {
+      "id": "event-005",
+      "title": "위생 점검 브리핑",
+      "category": "운영",
+      "start_date": "2026-04-24",
+      "end_date": "2026-04-24",
+      "repeat_interval_days": 7,
+      "repeat_count": 1,
+      "color": "#22C55E",
+      "note": "오전 근무자 전원 09:30 집합",
+      "all_day": false
+    }
+  ]
+}

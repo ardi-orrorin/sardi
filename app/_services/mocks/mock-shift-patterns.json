@@ -1,0 +1,41 @@
+{
+  "updated_at": "2026-03-27T09:00:00+09:00",
+  "items": [
+    {
+      "id": "pattern-front-manager",
+      "name": "매니저 기본 패턴",
+      "description": "오픈 2일, 미들 2일, 마감 1일 후 이틀 휴무",
+      "sequence": ["O", "O", "M", "M", "C", "OFF", "OFF"]
+    },
+    {
+      "id": "pattern-front-senior",
+      "name": "프론트 시니어 패턴",
+      "description": "미들 2일 후 휴무, 마감 2일, 휴무 1일, 미들 1일",
+      "sequence": ["M", "M", "OFF", "C", "C", "OFF", "M"]
+    },
+    {
+      "id": "pattern-backroom",
+      "name": "백룸 운영 패턴",
+      "description": "마감 중심 재고 운영 패턴",
+      "sequence": ["C", "C", "M", "OFF", "M", "M", "OFF"]
+    },
+    {
+      "id": "pattern-barista",
+      "name": "바리스타 기본 패턴",
+      "description": "오픈과 미들 비중이 높은 패턴",
+      "sequence": ["OFF", "O", "O", "M", "M", "C", "OFF"]
+    },
+    {
+      "id": "pattern-parttime",
+      "name": "파트타임 주말 패턴",
+      "description": "주중 휴무 후 후반 근무 집중",
+      "sequence": ["OFF", "OFF", "C", "C", "OFF", "M", "M"]
+    },
+    {
+      "id": "pattern-night",
+      "name": "야간 격일 패턴",
+      "description": "야간 근무 후 휴무를 반복",
+      "sequence": ["N", "OFF", "N", "OFF", "N", "OFF", "N"]
+    }
+  ]
+}
