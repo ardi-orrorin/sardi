@@ -1,0 +1,334 @@
+{
+  "location_name": "강남 메인 매장",
+  "generated_at": "2026-03-27T09:00:00+09:00",
+  "day_view": {
+    "period_label": "2026년 4월 3일 금요일",
+    "focus_date": "2026-04-03",
+    "summary": {
+      "total_employees": 6,
+      "scheduled_shifts": 5,
+      "open_slots": 1,
+      "overtime_employees": 1
+    },
+    "coverage_notes": [
+      "오픈 준비 인원은 충분합니다.",
+      "금요일 마감 바 포지션은 추가 지원 1명이 필요합니다.",
+      "주말 직전이라 미들 2명 구성을 유지합니다."
+    ],
+    "open_slots": [
+      {
+        "id": "open-1",
+        "title": "바 마감 지원 1명",
+        "team": "바",
+        "time": "17:00 - 23:00",
+        "shift_code": "OPEN",
+        "note": "금요일 피크 대응용 임시 슬롯"
+      }
+    ],
+    "employees": [
+      {
+        "id": "emp-001",
+        "name": "김하늘",
+        "team": "프론트",
+        "role": "매니저",
+        "color": "#38BDF8",
+        "weekly_hours": 44,
+        "assignment": { "shift_code": "C", "note": "발주 마감 검수" }
+      },
+      {
+        "id": "emp-002",
+        "name": "박서윤",
+        "team": "프론트",
+        "role": "시니어",
+        "color": "#2DD4BF",
+        "weekly_hours": 40,
+        "assignment": { "shift_code": "C", "note": "closing lead" }
+      },
+      {
+        "id": "emp-003",
+        "name": "이도윤",
+        "team": "백룸",
+        "role": "재고",
+        "color": "#818CF8",
+        "weekly_hours": 38,
+        "assignment": { "shift_code": "M", "note": "냉장 재고 점검" }
+      },
+      {
+        "id": "emp-004",
+        "name": "최민준",
+        "team": "바",
+        "role": "바리스타",
+        "color": "#FB7185",
+        "weekly_hours": 36,
+        "assignment": { "shift_code": "M", "note": "시즌 음료 prep" }
+      },
+      {
+        "id": "emp-005",
+        "name": "한예린",
+        "team": "바",
+        "role": "파트타임",
+        "color": "#F59E0B",
+        "weekly_hours": 28,
+        "assignment": { "shift_code": "OFF", "note": "요청 휴무" }
+      },
+      {
+        "id": "emp-006",
+        "name": "정지호",
+        "team": "지원",
+        "role": "야간",
+        "color": "#F97316",
+        "weekly_hours": 40,
+        "assignment": { "shift_code": "N", "note": "야간 청소 및 정산" }
+      }
+    ]
+  },
+  "week_view": {
+    "period_label": "2026년 3월 30일 - 2026년 4월 5일",
+    "summary": {
+      "total_employees": 6,
+      "scheduled_shifts": 32,
+      "open_slots": 3,
+      "overtime_employees": 1
+    },
+    "days": [
+      { "date": "2026-03-30", "label": "월", "display": "3/30", "is_today": false, "is_weekend": false },
+      { "date": "2026-03-31", "label": "화", "display": "3/31", "is_today": false, "is_weekend": false },
+      { "date": "2026-04-01", "label": "수", "display": "4/1", "is_today": false, "is_weekend": false },
+      { "date": "2026-04-02", "label": "목", "display": "4/2", "is_today": false, "is_weekend": false },
+      { "date": "2026-04-03", "label": "금", "display": "4/3", "is_today": true, "is_weekend": false },
+      { "date": "2026-04-04", "label": "토", "display": "4/4", "is_today": false, "is_weekend": true },
+      { "date": "2026-04-05", "label": "일", "display": "4/5", "is_today": false, "is_weekend": true }
+    ],
+    "employees": [
+      {
+        "id": "emp-001",
+        "name": "김하늘",
+        "team": "프론트",
+        "role": "매니저",
+        "color": "#38BDF8",
+        "weekly_hours": 44,
+        "assignments": [
+          { "date": "2026-03-30", "shift_code": "O", "note": "발주 확인" },
+          { "date": "2026-03-31", "shift_code": "O" },
+          { "date": "2026-04-01", "shift_code": "M", "note": "주간 점검" },
+          { "date": "2026-04-02", "shift_code": "M" },
+          { "date": "2026-04-03", "shift_code": "C" },
+          { "date": "2026-04-04", "shift_code": "OFF" },
+          { "date": "2026-04-05", "shift_code": "OFF" }
+        ]
+      },
+      {
+        "id": "emp-002",
+        "name": "박서윤",
+        "team": "프론트",
+        "role": "시니어",
+        "color": "#2DD4BF",
+        "weekly_hours": 40,
+        "assignments": [
+          { "date": "2026-03-30", "shift_code": "M" },
+          { "date": "2026-03-31", "shift_code": "M" },
+          { "date": "2026-04-01", "shift_code": "OFF" },
+          { "date": "2026-04-02", "shift_code": "C" },
+          { "date": "2026-04-03", "shift_code": "C" },
+          { "date": "2026-04-04", "shift_code": "OPEN", "note": "대체 인력 필요" },
+          { "date": "2026-04-05", "shift_code": "M" }
+        ]
+      },
+      {
+        "id": "emp-003",
+        "name": "이도윤",
+        "team": "백룸",
+        "role": "재고",
+        "color": "#818CF8",
+        "weekly_hours": 38,
+        "assignments": [
+          { "date": "2026-03-30", "shift_code": "C" },
+          { "date": "2026-03-31", "shift_code": "C" },
+          { "date": "2026-04-01", "shift_code": "M" },
+          { "date": "2026-04-02", "shift_code": "OFF" },
+          { "date": "2026-04-03", "shift_code": "M" },
+          { "date": "2026-04-04", "shift_code": "M" },
+          { "date": "2026-04-05", "shift_code": "OFF" }
+        ]
+      },
+      {
+        "id": "emp-004",
+        "name": "최민준",
+        "team": "바",
+        "role": "바리스타",
+        "color": "#FB7185",
+        "weekly_hours": 36,
+        "assignments": [
+          { "date": "2026-03-30", "shift_code": "OFF" },
+          { "date": "2026-03-31", "shift_code": "O" },
+          { "date": "2026-04-01", "shift_code": "O" },
+          { "date": "2026-04-02", "shift_code": "M" },
+          { "date": "2026-04-03", "shift_code": "M" },
+          { "date": "2026-04-04", "shift_code": "C" },
+          { "date": "2026-04-05", "shift_code": "OPEN", "note": "주말 채용 필요" }
+        ]
+      },
+      {
+        "id": "emp-005",
+        "name": "한예린",
+        "team": "바",
+        "role": "파트타임",
+        "color": "#F59E0B",
+        "weekly_hours": 28,
+        "assignments": [
+          { "date": "2026-03-30", "shift_code": "OFF" },
+          { "date": "2026-03-31", "shift_code": "OFF" },
+          { "date": "2026-04-01", "shift_code": "C" },
+          { "date": "2026-04-02", "shift_code": "C" },
+          { "date": "2026-04-03", "shift_code": "OFF" },
+          { "date": "2026-04-04", "shift_code": "M" },
+          { "date": "2026-04-05", "shift_code": "M" }
+        ]
+      },
+      {
+        "id": "emp-006",
+        "name": "정지호",
+        "team": "지원",
+        "role": "야간",
+        "color": "#F97316",
+        "weekly_hours": 40,
+        "assignments": [
+          { "date": "2026-03-30", "shift_code": "N" },
+          { "date": "2026-03-31", "shift_code": "OFF" },
+          { "date": "2026-04-01", "shift_code": "N" },
+          { "date": "2026-04-02", "shift_code": "OFF" },
+          { "date": "2026-04-03", "shift_code": "N" },
+          { "date": "2026-04-04", "shift_code": "OFF" },
+          { "date": "2026-04-05", "shift_code": "N" }
+        ]
+      }
+    ]
+  },
+  "month_view": {
+    "period_label": "2026년 4월",
+    "summary": {
+      "total_employees": 6,
+      "scheduled_shifts": 148,
+      "open_slots": 7,
+      "overtime_employees": 2
+    },
+    "days": [
+      { "date": "2026-04-01", "label": "수", "display": "1", "tone": "weekday" },
+      { "date": "2026-04-02", "label": "목", "display": "2", "tone": "weekday" },
+      { "date": "2026-04-03", "label": "금", "display": "3", "tone": "weekday" },
+      { "date": "2026-04-04", "label": "토", "display": "4", "tone": "sat" },
+      { "date": "2026-04-05", "label": "일", "display": "5", "tone": "sun" },
+      { "date": "2026-04-06", "label": "월", "display": "6", "tone": "weekday" },
+      { "date": "2026-04-07", "label": "화", "display": "7", "tone": "weekday" },
+      { "date": "2026-04-08", "label": "수", "display": "8", "tone": "weekday" },
+      { "date": "2026-04-09", "label": "목", "display": "9", "tone": "weekday" },
+      { "date": "2026-04-10", "label": "금", "display": "10", "tone": "weekday" },
+      { "date": "2026-04-11", "label": "토", "display": "11", "tone": "sat" },
+      { "date": "2026-04-12", "label": "일", "display": "12", "tone": "sun" },
+      { "date": "2026-04-13", "label": "월", "display": "13", "tone": "weekday" },
+      { "date": "2026-04-14", "label": "화", "display": "14", "tone": "weekday" },
+      { "date": "2026-04-15", "label": "수", "display": "15", "tone": "weekday" },
+      { "date": "2026-04-16", "label": "목", "display": "16", "tone": "weekday" },
+      { "date": "2026-04-17", "label": "금", "display": "17", "tone": "weekday" },
+      { "date": "2026-04-18", "label": "토", "display": "18", "tone": "sat" },
+      { "date": "2026-04-19", "label": "일", "display": "19", "tone": "sun" },
+      { "date": "2026-04-20", "label": "월", "display": "20", "tone": "weekday" },
+      { "date": "2026-04-21", "label": "화", "display": "21", "tone": "weekday" },
+      { "date": "2026-04-22", "label": "수", "display": "22", "tone": "weekday" },
+      { "date": "2026-04-23", "label": "목", "display": "23", "tone": "weekday" },
+      { "date": "2026-04-24", "label": "금", "display": "24", "tone": "weekday" },
+      { "date": "2026-04-25", "label": "토", "display": "25", "tone": "sat" },
+      { "date": "2026-04-26", "label": "일", "display": "26", "tone": "sun" },
+      { "date": "2026-04-27", "label": "월", "display": "27", "tone": "weekday" },
+      { "date": "2026-04-28", "label": "화", "display": "28", "tone": "weekday" },
+      { "date": "2026-04-29", "label": "수", "display": "29", "tone": "weekday" },
+      { "date": "2026-04-30", "label": "목", "display": "30", "tone": "weekday" }
+    ],
+    "employees": [
+      {
+        "id": "emp-001",
+        "name": "김하늘",
+        "team": "프론트",
+        "role": "매니저",
+        "color": "#38BDF8",
+        "monthly_hours": 176,
+        "rotation": ["O", "O", "M", "M", "C", "OFF", "OFF"],
+        "rotation_offset": 0,
+        "overrides": [
+          { "date": "2026-04-10", "shift_code": "C" },
+          { "date": "2026-04-24", "shift_code": "OPEN" }
+        ]
+      },
+      {
+        "id": "emp-002",
+        "name": "박서윤",
+        "team": "프론트",
+        "role": "시니어",
+        "color": "#2DD4BF",
+        "monthly_hours": 168,
+        "rotation": ["M", "M", "OFF", "C", "C", "OPEN", "M"],
+        "rotation_offset": 1,
+        "overrides": [
+          { "date": "2026-04-05", "shift_code": "OFF" },
+          { "date": "2026-04-19", "shift_code": "OPEN" }
+        ]
+      },
+      {
+        "id": "emp-003",
+        "name": "이도윤",
+        "team": "백룸",
+        "role": "재고",
+        "color": "#818CF8",
+        "monthly_hours": 160,
+        "rotation": ["C", "C", "M", "OFF", "M", "M", "OFF"],
+        "rotation_offset": 2,
+        "overrides": [
+          { "date": "2026-04-08", "shift_code": "OFF" },
+          { "date": "2026-04-28", "shift_code": "C" }
+        ]
+      },
+      {
+        "id": "emp-004",
+        "name": "최민준",
+        "team": "바",
+        "role": "바리스타",
+        "color": "#FB7185",
+        "monthly_hours": 152,
+        "rotation": ["OFF", "O", "O", "M", "M", "C", "OPEN"],
+        "rotation_offset": 0,
+        "overrides": [
+          { "date": "2026-04-04", "shift_code": "C" },
+          { "date": "2026-04-26", "shift_code": "OPEN" }
+        ]
+      },
+      {
+        "id": "emp-005",
+        "name": "한예린",
+        "team": "바",
+        "role": "파트타임",
+        "color": "#F59E0B",
+        "monthly_hours": 120,
+        "rotation": ["OFF", "OFF", "C", "C", "OFF", "M", "M"],
+        "rotation_offset": 3,
+        "overrides": [
+          { "date": "2026-04-12", "shift_code": "OFF" },
+          { "date": "2026-04-18", "shift_code": "M" }
+        ]
+      },
+      {
+        "id": "emp-006",
+        "name": "정지호",
+        "team": "지원",
+        "role": "야간",
+        "color": "#F97316",
+        "monthly_hours": 164,
+        "rotation": ["N", "OFF", "N", "OFF", "N", "OFF", "N"],
+        "rotation_offset": 0,
+        "overrides": [
+          { "date": "2026-04-07", "shift_code": "OFF" },
+          { "date": "2026-04-21", "shift_code": "N" }
+        ]
+      }
+    ]
+  }
+}

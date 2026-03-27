@@ -1,0 +1,163 @@
+{
+  "updated_at": "2026-03-27T09:00:00+09:00",
+  "items": [
+    {
+      "id": "emp-001",
+      "name": "김하늘",
+      "team": "프론트",
+      "role": "매니저",
+      "color": "#38BDF8",
+      "weekly_hours": 44,
+      "pattern_assignments": [
+        {
+          "id": "emp-001-assignment-1",
+          "pattern_id": "pattern-front-manager",
+          "effective_from": "2026-03-30",
+          "effective_to": "2026-04-12",
+          "pattern_anchor_date": "2026-03-30",
+          "pattern_offset": 0
+        },
+        {
+          "id": "emp-001-assignment-2",
+          "pattern_id": "pattern-front-senior",
+          "effective_from": "2026-04-13",
+          "effective_to": null,
+          "pattern_anchor_date": "2026-04-13",
+          "pattern_offset": 1
+        }
+      ],
+      "overrides": [
+        {
+          "id": "emp-001-override-1",
+          "date": "2026-04-08",
+          "shift_code": "연차",
+          "reason": "개인 연차"
+        }
+      ]
+    },
+    {
+      "id": "emp-002",
+      "name": "박서윤",
+      "team": "프론트",
+      "role": "시니어",
+      "color": "#2DD4BF",
+      "weekly_hours": 40,
+      "pattern_assignments": [
+        {
+          "id": "emp-002-assignment-1",
+          "pattern_id": "pattern-front-senior",
+          "effective_from": "2026-03-30",
+          "effective_to": null,
+          "pattern_anchor_date": "2026-03-30",
+          "pattern_offset": 0
+        }
+      ],
+      "overrides": [
+        {
+          "id": "emp-002-override-1",
+          "date": "2026-04-10",
+          "shift_code": "C",
+          "reason": "매장 마감 지원"
+        }
+      ]
+    },
+    {
+      "id": "emp-003",
+      "name": "이도윤",
+      "team": "백룸",
+      "role": "재고",
+      "color": "#818CF8",
+      "weekly_hours": 38,
+      "pattern_assignments": [
+        {
+          "id": "emp-003-assignment-1",
+          "pattern_id": "pattern-backroom",
+          "effective_from": "2026-03-30",
+          "effective_to": null,
+          "pattern_anchor_date": "2026-03-30",
+          "pattern_offset": 0
+        }
+      ],
+      "overrides": []
+    },
+    {
+      "id": "emp-004",
+      "name": "최민준",
+      "team": "바",
+      "role": "바리스타",
+      "color": "#FB7185",
+      "weekly_hours": 36,
+      "pattern_assignments": [
+        {
+          "id": "emp-004-assignment-1",
+          "pattern_id": "pattern-barista",
+          "effective_from": "2026-03-30",
+          "effective_to": "2026-04-19",
+          "pattern_anchor_date": "2026-03-30",
+          "pattern_offset": 1
+        },
+        {
+          "id": "emp-004-assignment-2",
+          "pattern_id": "pattern-parttime",
+          "effective_from": "2026-04-20",
+          "effective_to": null,
+          "pattern_anchor_date": "2026-04-20",
+          "pattern_offset": 0
+        }
+      ],
+      "overrides": []
+    },
+    {
+      "id": "emp-005",
+      "name": "한예린",
+      "team": "바",
+      "role": "파트타임",
+      "color": "#F59E0B",
+      "weekly_hours": 28,
+      "pattern_assignments": [
+        {
+          "id": "emp-005-assignment-1",
+          "pattern_id": "pattern-parttime",
+          "effective_from": "2026-03-30",
+          "effective_to": null,
+          "pattern_anchor_date": "2026-03-30",
+          "pattern_offset": 0
+        }
+      ],
+      "overrides": [
+        {
+          "id": "emp-005-override-1",
+          "date": "2026-04-18",
+          "shift_code": "OPEN",
+          "reason": "교체 요청으로 슬롯 재오픈"
+        }
+      ]
+    },
+    {
+      "id": "emp-006",
+      "name": "정지호",
+      "team": "지원",
+      "role": "야간",
+      "color": "#F97316",
+      "weekly_hours": 40,
+      "pattern_assignments": [
+        {
+          "id": "emp-006-assignment-1",
+          "pattern_id": "pattern-night",
+          "effective_from": "2026-03-30",
+          "effective_to": null,
+          "pattern_anchor_date": "2026-03-30",
+          "pattern_offset": 0
+        }
+      ],
+      "overrides": [
+        {
+          "id": "emp-006-override-1",
+          "date": "2026-04-16",
+          "shift_code": "OFF",
+          "reason": "건강검진"
+        }
+      ]
+    }
+  ]
+}

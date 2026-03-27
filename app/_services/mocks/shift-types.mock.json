@@ -1,0 +1,89 @@
+{
+  "updated_at": "2026-03-27T09:00:00+09:00",
+  "items": [
+    {
+      "id": "shift-o",
+      "code": "O",
+      "name": "오픈",
+      "category": "일반 근무",
+      "description": "오전 오픈 준비와 초반 피크 대응",
+      "start": "07:00",
+      "end": "15:00",
+      "color": "#0EA5E9",
+      "text_color": "#ECFEFF",
+      "all_day": false
+    },
+    {
+      "id": "shift-m",
+      "code": "M",
+      "name": "미들",
+      "category": "일반 근무",
+      "description": "점심부터 오후까지 메인 운영",
+      "start": "10:00",
+      "end": "18:00",
+      "color": "#14B8A6",
+      "text_color": "#F0FDFA",
+      "all_day": false
+    },
+    {
+      "id": "shift-c",
+      "code": "C",
+      "name": "마감",
+      "category": "일반 근무",
+      "description": "저녁 피크와 마감 정산 담당",
+      "start": "14:00",
+      "end": "22:00",
+      "color": "#6366F1",
+      "text_color": "#EEF2FF",
+      "all_day": false
+    },
+    {
+      "id": "shift-n",
+      "code": "N",
+      "name": "야간",
+      "category": "일반 근무",
+      "description": "심야 정리와 다음날 준비",
+      "start": "22:00",
+      "end": "07:00",
+      "color": "#F97316",
+      "text_color": "#FFF7ED",
+      "all_day": false
+    },
+    {
+      "id": "shift-off",
+      "code": "OFF",
+      "name": "휴무",
+      "category": "휴무",
+      "description": "확정 휴무 또는 요청 휴무",
+      "start": "",
+      "end": "",
+      "color": "#3F3F46",
+      "text_color": "#F4F4F5",
+      "all_day": true
+    },
+    {
+      "id": "shift-annual-leave",
+      "code": "연차",
+      "name": "연차",
+      "category": "휴무",
+      "description": "확정 근무를 휴가로 전환하는 날짜 오버라이드",
+      "start": "",
+      "end": "",
+      "color": "#22C55E",
+      "text_color": "#052E16",
+      "all_day": true
+    },
+    {
+      "id": "shift-open",
+      "code": "OPEN",
+      "name": "오픈 슬롯",
+      "category": "지원 슬롯",
+      "description": "아직 배정되지 않은 근무 슬롯",
+      "start": "",
+      "end": "",
+      "color": "#DC2626",
+      "text_color": "#FEF2F2",
+      "all_day": true
+    }
+  ]
+}

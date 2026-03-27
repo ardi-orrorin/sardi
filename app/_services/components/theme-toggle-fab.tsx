@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 type ThemeMode = "light" | "dark";
 
@@ -12,7 +12,19 @@ const applyTheme = (mode: ThemeMode) => {
   root.classList.toggle("theme-dark", mode === "dark");
 };
 
-const resolveInitialTheme = (): ThemeMode => {
+const getBootstrappedTheme = (): ThemeMode => {
+  if (typeof document === "undefined") {
+    return "dark";
+  }
+
+  if (document.documentElement.classList.contains("theme-light")) {
+    return "light";
+  }
+
+  if (document.documentElement.classList.contains("theme-dark")) {
+    return "dark";
+  }
+
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (stored === "light" || stored === "dark") {
     return stored;
@@ -20,6 +32,12 @@ const resolveInitialTheme = (): ThemeMode => {
 
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 };
+
+const subscribeHydration = () => () => undefined;
+
+const getClientHydratedSnapshot = () => true;
+
+const getServerHydratedSnapshot = () => false;
 
 function SunIcon() {
   return (
@@ -39,17 +57,8 @@ function MoonIcon() {
 }
 
 export function ThemeToggleFab() {
-  const [mode, setMode] = useState<ThemeMode>("dark");
-
-  useEffect(() => {
-    const frameId = window.requestAnimationFrame(() => {
-      setMode(resolveInitialTheme());
-    });
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-    };
-  }, []);
+  const isHydrated = useSyncExternalStore(subscribeHydration, getClientHydratedSnapshot, getServerHydratedSnapshot);
+  const [mode, setMode] = useState<ThemeMode>(getBootstrappedTheme);
 
   useEffect(() => {
     applyTheme(mode);
@@ -59,6 +68,10 @@ export function ThemeToggleFab() {
   const toggleTheme = () => {
     setMode((prev) => (prev === "dark" ? "light" : "dark"));
   };
+
+  if (!isHydrated) {
+    return null;
+  }
 
   return (
     <button

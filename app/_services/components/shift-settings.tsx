@@ -1,7 +1,11 @@
 "use client";
 
+import { MockCompanyEventManager } from "@/app/_services/components/mock-company-event-manager";
+import { MockEmployeeManager } from "@/app/_services/components/mock-employee-manager";
 import { FetchBuilder } from "@/app/_commons/utils/func";
 import { EditIcon, TrashIcon } from "@/app/_services/components/icons";
+import { MockShiftTypeManager } from "@/app/_services/components/mock-shift-type-manager";
+import { MockShiftPatternManager } from "@/app/_services/components/mock-shift-pattern-manager";
 import { useAuthActions } from "@/app/_services/hooks/use-auth-actions";
 import { NumberDropdown } from "@/app/_services/components/number-dropdown";
 import { TopNavbar } from "@/app/_services/components/top-navbar";
@@ -630,7 +634,7 @@ export default function ShiftSettings() {
 
   return (
     <div className="space-y-4">
-      <TopNavbar current="shifts" title="근무 타입/패턴 설정" onLogout={() => void logout()} />
+      <TopNavbar current="shift-types" title="근무 타입/패턴 설정" onLogout={() => void logout()} />
 
       {statusMessage ? (
         <div
@@ -644,6 +648,18 @@ export default function ShiftSettings() {
           {statusMessage}
         </div>
       ) : null}
+
+      <MockShiftTypeManager />
+      <MockShiftPatternManager />
+      <MockEmployeeManager />
+      <MockCompanyEventManager />
+
+      <div className="rounded-2xl border border-teal-300/20 bg-black/20 px-4 py-3 text-sm text-teal-50">
+        <p className="font-semibold">서버 연동형 설정</p>
+        <p className="mt-1 text-xs text-teal-100/70">
+          아래 영역은 기존 API 기반 근무 타입/패턴 관리 화면입니다. 위 mock 근무 형태 시안과 별도로 유지됩니다.
+        </p>
+      </div>
 
       <section className="grid gap-4 p-0 md:min-h-[calc(100dvh-11.5rem)] md:grid-cols-2">
         <form
