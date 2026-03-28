@@ -7,17 +7,18 @@
 
 - 프로젝트: `sardi`
 - 프레임워크: Next.js(App Router) + TypeScript
-- 목적: 개인용 교대근무 스케줄 관리
+- 목적: 개인 계정 기준 근무 스케줄 관리
 - UI 기준: 모바일 우선, PC 호환
-- 캘린더: FullCalendar 기반 (년/월/주/일 뷰)
+- 현재 메인 UX: 직원/근무 형태/반복 패턴/회사 이벤트 기반 근무표 대시보드
 
 #### 핵심 도메인 규칙
 
+- 근무 형태/직원/패턴/회사 이벤트는 모두 로그인한 사용자(`user_id`) 소유.
+- 대시보드는 `직원별 패턴 배정 + 날짜별 오버라이드 + 회사 이벤트`를 합쳐 계산.
+- 날짜별 오버라이드(스케줄 변경)는 반복 패턴보다 우선.
+- 회사 이벤트 반복은 `반복 간격(일)` + `반복 횟수` 기준.
 - UI 타임존은 `Asia/Seoul` 기준으로 표시.
-- DB 저장 시간은 UTC로 저장되므로 표시/수정 시 타임존 변환을 항상 고려.
-- 반복 일정 종료는 날짜가 아닌 "반복 횟수" 기준.
-- 라벨은 일정 생성 시 필수.
-- 휴일 스타일은 일정 제목에 `휴일`이 포함된 경우에만 적용.
+- 테마 모드는 `localStorage`에 저장되며 새로고침 후 유지.
 
 #### 인증/계정
 
@@ -42,8 +43,14 @@
   - `POST /api/auth/change-password`
 - WebAuthn:
   - `/api/webauthn/*`
-- 스케줄러:
+- 근무 스케줄:
   - `/api/sardi/*`
+  - `/api/sardi/shift-types`
+  - `/api/sardi/patterns`
+  - `/api/sardi/employees`
+  - `/api/sardi/employees/{id}/pattern-assignments`
+  - `/api/sardi/employees/{id}/schedule-overrides`
+  - `/api/sardi/company-events`
 
 #### UI/스타일 규칙
 
@@ -56,9 +63,12 @@
 
 #### 파일 구조 포인트
 
-- 대시보드: `app/_services/components/scheduler-dashboard.tsx`
-- 근무 타입/패턴: `app/_services/components/shift-settings.tsx`
-- 라벨 설정: `app/_services/components/label-settings.tsx`
+- 근무 스케줄 대시보드: `app/_services/components/staff-schedule-board.tsx`
+- 상단 메뉴: `app/_services/components/top-navbar.tsx`
+- 근무 형태: `app/_services/components/mock-shift-type-manager.tsx`
+- 반복 패턴: `app/_services/components/mock-shift-pattern-manager.tsx`
+- 직원: `app/_services/components/mock-employee-manager.tsx`
+- 회사 이벤트: `app/_services/components/mock-company-event-manager.tsx`
 - 계정 설정: `app/_services/components/account-settings.tsx`
 - 테마 FAB: `app/_services/components/theme-toggle-fab.tsx`
 - 공통 fetch: `app/_commons/utils/func.ts`
@@ -67,10 +77,10 @@
 
 - UI 수정 시:
   1) 모바일(약 390px)에서 버튼 개행/터치 영역 확인
-  2) PC 레이아웃(필터/캘린더 폭 비율) 확인
+  2) PC 레이아웃(주간/월간 가로 스크롤, sticky 직원 열) 확인
 - 도메인 로직 수정 시:
-  1) UTC 저장 + 서울 표시가 일관적인지 확인
-  2) 반복 일정 그룹/분리 동작 확인
+  1) 패턴 배정 기간 + 오버라이드 우선순위가 일관적인지 확인
+  2) 회사 이벤트 반복 발생 계산이 화면과 맞는지 확인
 - 완료 전 검증:
   - `npm run lint`
   - `npm run build`
